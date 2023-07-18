@@ -116,6 +116,8 @@ namespace AnimationInstancing
             }
             if (workingInfo != null)
             {
+                //! Bake Animation Process
+
                 //float time = workingInfo.animator.GetCurrentAnimatorStateInfo(0).normalizedTime;
                 //Debug.Log("The time is" + time);
                 for (int j = 0; j != workingInfo.meshRender.Length; ++j)
@@ -152,6 +154,8 @@ namespace AnimationInstancing
                         EditorUtility.ClearProgressBar();
                     }
 
+
+                    //! complete Bake Process
                     if (workingInfo.animator != null)
                     {
                         workingInfo.animator.gameObject.transform.position = Vector3.zero;
@@ -1043,6 +1047,8 @@ namespace AnimationInstancing
                 if (matrixData.boneMatrix != null)
                 {
                     Debug.Assert(pixely + textureBlockHeight <= bakedBoneTexture[bakedTextureIndex].height);
+
+                    //! Set Matrix to Color in Texture2D
                     Color[] color = UtilityHelper.Convert2Color(matrixData.boneMatrix);
                     bakedBoneTexture[bakedTextureIndex].SetPixels(pixelx, pixely, textureBlockWidth, textureBlockHeight, color);
                     matrixData.frameIndex = pixelx / textureBlockWidth + pixely / textureBlockHeight * bakedBoneTexture[bakedTextureIndex].width / textureBlockWidth;
