@@ -5,3 +5,11 @@ obj/**
 *.app
 *.unitypackage
 Assets/AniInstancing/Scripts/AnimationInstancing.cs
+.vs/
+Logs/
+UserSettings/
+.vscode/
+Animation-Instance.sln
+Assembly-CSharp.csproj
+Assembly-CSharp-Editor.csproj
+.vsconfig

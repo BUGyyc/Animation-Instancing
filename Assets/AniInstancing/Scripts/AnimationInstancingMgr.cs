@@ -94,6 +94,8 @@ namespace AnimationInstancing
 
         BoundingSphere[] boundingSphere;
         int usedBoundingSphereCount = 0;
+
+        //！注：用上了剔除盒子
         CullingGroup cullingGroup;
 
         public static AnimationInstancingMgr GetInstance()

@@ -30,6 +30,7 @@ namespace AnimationInstancing
         
 
         private ArrayList aniInfo = new ArrayList();
+        //！ 采样帧率
         private int aniFps = 15;
 
         class AnimationBakeInfo
@@ -54,9 +55,13 @@ namespace AnimationInstancing
         private Transform[] boneTransform;
         // to cache the bone count of object in bake flow
         int boneCount = 20;
+        /// <summary>
+        /// ！ 约定一个最大采样数？
+        /// </summary>
         const int BakeFrameCount = 10000;
         int textureBlockWidth = 4;
         int textureBlockHeight = 10;
+        //！设定参考尺寸
         int[] stardardTextureSize = { 64, 128, 256, 512, 1024 };
         int bakedTextureIndex;
         private Texture2D[] bakedBoneTexture = null;
@@ -465,6 +470,8 @@ namespace AnimationInstancing
                 generatedObject.transform.rotation = Quaternion.identity;
                 Animator animator = generatedObject.GetComponentInChildren<Animator>();
                 
+
+                //! Core Animation Instance 
                 AnimationInstancing script = generatedObject.GetComponent<AnimationInstancing>();
                 Debug.Assert(script);
                 SkinnedMeshRenderer[] meshRender = generatedObject.GetComponentsInChildren<SkinnedMeshRenderer>();
@@ -511,7 +518,7 @@ namespace AnimationInstancing
                 Reset();
                 AddMeshVertex2Generate(meshRender, boneTransform, bindPose.ToArray());
 
-                Transform rootNode = meshRender[0].rootBone;
+                //Transform rootNode = meshRender[0].rootBone;
                 for (int j = 0; j != meshRender.Length; ++j)
                 {
                     meshRender[j].enabled = true;
@@ -848,6 +855,7 @@ namespace AnimationInstancing
                     continue;
 
                 AnimationInstancingMgr.VertexCache vertexCache = new AnimationInstancingMgr.VertexCache();
+                //!  Write CachePool
                 generateVertexCachePool[nameCode] = vertexCache;
                 vertexCache.nameCode = nameCode;
                 vertexCache.bonePose = boneTransform;

@@ -98,12 +98,12 @@ namespace AnimationInstancing
             listAttachment = new List<AnimationInstancing>();
             layer = gameObject.layer;
 
-            switch (QualitySettings.blendWeights)
+            switch (QualitySettings.skinWeights)
             {
-                case BlendWeights.TwoBones:
+                case SkinWeights.TwoBones:
                     bonePerVertex = bonePerVertex > 2?2: bonePerVertex;
                     break;
-                case BlendWeights.OneBone:
+                case SkinWeights.OneBone:
                     bonePerVertex = 1;
                     break;
             }

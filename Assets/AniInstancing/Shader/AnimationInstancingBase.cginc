@@ -1,4 +1,6 @@
-﻿#ifndef ANIMATION_INSTANCING_BASE
+﻿// Upgrade NOTE: upgraded instancing buffer 'Props' to new syntax.
+
+#ifndef ANIMATION_INSTANCING_BASE
 #define ANIMATION_INSTANCING_BASE
 
 //#pragma target 3.0
@@ -14,11 +16,14 @@ uniform float frameIndex;
 uniform float preFrameIndex;
 uniform float transitionProgress;
 #else
-UNITY_INSTANCING_CBUFFER_START(Props)
+UNITY_INSTANCING_BUFFER_START(Props)
 	UNITY_DEFINE_INSTANCED_PROP(float, preFrameIndex)
+#define preFrameIndex_arr Props
 	UNITY_DEFINE_INSTANCED_PROP(float, frameIndex)
+#define frameIndex_arr Props
 	UNITY_DEFINE_INSTANCED_PROP(float, transitionProgress)
-UNITY_INSTANCING_CBUFFER_END
+#define transitionProgress_arr Props
+UNITY_INSTANCING_BUFFER_END(Props)
 #endif
 
 half4x4 loadMatFromTexture(uint frameIndex, uint boneIndex)
@@ -64,9 +69,9 @@ half4 skinning(inout appdata_full v)
 	float preAniFrame = preFrameIndex;
 	float progress = transitionProgress;
 #else
-	float curFrame = UNITY_ACCESS_INSTANCED_PROP(frameIndex);
-	float preAniFrame = UNITY_ACCESS_INSTANCED_PROP(preFrameIndex);
-	float progress = UNITY_ACCESS_INSTANCED_PROP(transitionProgress);
+	float curFrame = UNITY_ACCESS_INSTANCED_PROP(frameIndex_arr, frameIndex);
+	float preAniFrame = UNITY_ACCESS_INSTANCED_PROP(preFrameIndex_arr, preFrameIndex);
+	float progress = UNITY_ACCESS_INSTANCED_PROP(transitionProgress_arr, transitionProgress);
 #endif
 
 	//float curFrame = UNITY_ACCESS_INSTANCED_PROP(frameIndex);
@@ -107,9 +112,9 @@ half4 skinningShadow(inout appdata_full v)
 	float preAniFrame = preFrameIndex;
 	float progress = transitionProgress;
 #else
-	float curFrame = UNITY_ACCESS_INSTANCED_PROP(frameIndex);
-	float preAniFrame = UNITY_ACCESS_INSTANCED_PROP(preFrameIndex);
-	float progress = UNITY_ACCESS_INSTANCED_PROP(transitionProgress);
+	float curFrame = UNITY_ACCESS_INSTANCED_PROP(frameIndex_arr, frameIndex);
+	float preAniFrame = UNITY_ACCESS_INSTANCED_PROP(preFrameIndex_arr, preFrameIndex);
+	float progress = UNITY_ACCESS_INSTANCED_PROP(transitionProgress_arr, transitionProgress);
 #endif
 	int preFrame = curFrame;
 	int nextFrame = curFrame + 1.0f;
