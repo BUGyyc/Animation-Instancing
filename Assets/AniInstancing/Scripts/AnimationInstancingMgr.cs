@@ -136,6 +136,7 @@ namespace AnimationInstancing
 
         void Update()
         {
+            //！计算骨骼位置
             ApplyBoneMatrix();
             Render();
         }
@@ -268,7 +269,9 @@ namespace AnimationInstancing
             bool removed = aniInstancingList.Remove(instance);
             if (removed)
             {
+                //! bound 数量减小
                 --usedBoundingSphereCount;
+                //！设定新的数量
                 cullingGroup.SetBoundingSphereCount(usedBoundingSphereCount);
                 Debug.Assert(usedBoundingSphereCount >= 0);
                 if (usedBoundingSphereCount < 0)
@@ -326,18 +329,22 @@ namespace AnimationInstancing
                 AnimationInstancing instance = aniInstancingList[i];
                 if (!instance.IsPlaying())
                     continue;
+                //! 这里的 ？？ aniIndex 比较特别-----------------------------------------------------
                 if (instance.aniIndex < 0 && instance.parentInstance == null)
                     continue;
 
+                //！如果有用 RootMotion，则需要修改 Root 的坐标和朝向
                 if (instance.applyRootMotion)
                     ApplyRootMotion(instance);
 
                 instance.UpdateAnimation();
+                //！更新一下 包围盒的坐标，因为RootMotion 可能已经改动位置
                 instance.boundingSpere.position = instance.transform.position;
                 boundingSphere[i] = instance.boundingSpere;
-
+                //！ 不可见，不需要绘制
                 if (!instance.visible)
                     continue;
+                //! 更新Lod
                 instance.UpdateLod(cameraPosition);
 
                 AnimationInstancing.LodInfo lod = instance.lodInfo[instance.lodLevel];
@@ -938,6 +945,10 @@ namespace AnimationInstancing
         }
 
 
+        /// <summary>
+        /// ！ 视野变化，需要修改剔除结果
+        /// </summary>
+        /// <param name="evt"></param>
         private void CullingStateChanged(CullingGroupEvent evt)
         {
             Debug.Assert(evt.index < usedBoundingSphereCount);

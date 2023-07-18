@@ -20,14 +20,41 @@ namespace AnimationInstancing
         [NonSerialized]
         public Transform worldTransform;
         //public GameObject prefab { get; set; }
+
+        /// <summary>
+        /// ！实例化的原型
+        /// </summary>
 		public GameObject prototype;
+        /// <summary>
+        /// ！包围盒位置
+        /// </summary>
         public BoundingSphere boundingSpere;
+        /// <summary>
+        /// ! 包围盒是否可见
+        /// </summary>
+        /// <value></value>
         public bool visible { get; set; }
+        /// <summary>
+        ///! Attach 需要指定 Parent
+        /// </summary>
+        /// <value></value>
         public AnimationInstancing parentInstance { get; set; }
+        /// <summary>
+        /// ！播放速度基数
+        /// </summary>
         public float playSpeed = 1.0f;
+        /// <summary>
+        /// ！阴影投射模式
+        /// </summary>
         public UnityEngine.Rendering.ShadowCastingMode shadowCastingMode;
+        /// <summary>
+        /// ！是否接受阴影
+        /// </summary>
         public bool receiveShadow;
         [NonSerialized]
+        /// <summary>
+        /// ！GameLayer 
+        /// </summary>
         public int layer;
         float speedParameter = 1.0f, cacheParameter = 1.0f;
         WrapMode wrapMode;
@@ -38,7 +65,9 @@ namespace AnimationInstancing
         }
         public bool IsLoop() { return Mode == WrapMode.Loop; }
         public bool IsPause() { return speedParameter == 0.0f; }
-
+        /// <summary>
+        /// ! 是否使用 RootMotion
+        /// </summary>
         public bool applyRootMotion = false;
         [Range(1, 4)]
         public int bonePerVertex = 4;
@@ -49,11 +78,17 @@ namespace AnimationInstancing
         [NonSerialized]
         public int aniIndex = -1;
         [NonSerialized]
+        /// <summary>
+        /// ！即将播放的动画索引
+        /// </summary>
         public int preAniIndex = -1;
         [NonSerialized]
         public int aniTextureIndex = -1;
         int preAniTextureIndex = -1;
         float transitionDuration = 0.0f;
+        /// <summary>
+        /// ！标记是否是过度状态
+        /// </summary>
         bool isInTransition = false;
         float transitionTimer = 0.0f;
         [NonSerialized]
@@ -82,6 +117,9 @@ namespace AnimationInstancing
         private Transform[] allTransforms;
         private bool isMeshRender = false;
         [NonSerialized]
+        /// <summary>
+        /// ！记录挂载点
+        /// </summary>
         private List<AnimationInstancing> listAttachment;
 
         void Start()
@@ -94,10 +132,13 @@ namespace AnimationInstancing
 
             worldTransform = GetComponent<Transform>();
             animator = GetComponent<Animator>();
+            //！ 创建一个包围盒
             boundingSpere = new BoundingSphere(new Vector3(0, 0, 0), 1.0f);
+            //！ 挂点列表
             listAttachment = new List<AnimationInstancing>();
             layer = gameObject.layer;
-
+            
+            //！蒙皮受骨骼影响的骨骼数量
             switch (QualitySettings.skinWeights)
             {
                 case SkinWeights.TwoBones:
@@ -112,6 +153,7 @@ namespace AnimationInstancing
             LODGroup lod = GetComponent<LODGroup>();
             if (lod != null)
             {
+                //! 管理 LOD 信息
                 lodInfo = new LodInfo[lod.lodCount];
                 LOD[] lods = lod.GetLODs();
                 for (int i = 0; i != lods.Length; ++i)
@@ -129,6 +171,7 @@ namespace AnimationInstancing
                     List<MeshRenderer> listMeshRenderer = new List<MeshRenderer>();
                     foreach (var render in lods[i].renderers)
                     {
+                        //! 对于不同类型的 Renderer 进行记录
                         if (render is SkinnedMeshRenderer)
                             listSkinnedMeshRenderer.Add((SkinnedMeshRenderer)render);
                         if (render is MeshRenderer)
@@ -138,6 +181,7 @@ namespace AnimationInstancing
                     info.meshRenderer = listMeshRenderer.ToArray();
                     //todo, to make sure whether the MeshRenderer can be in the LOD.
                     info.meshFilter = null;
+                    //!  Disable the GameObject 
                     for (int j = 0; j != lods[i].renderers.Length; ++j)
                     {
                         lods[i].renderers[j].enabled = false;
@@ -171,11 +215,14 @@ namespace AnimationInstancing
             if (AnimationInstancingMgr.Instance.UseInstancing
                 && animator != null)
             {
+                //! 关闭原本的 Animator
                 animator.enabled = false;
             }
             visible = true;
             CalcBoundingSphere();
+            //！包围盒 记录到 Mgr 中
             AnimationInstancingMgr.Instance.AddBoundingSphere(this);
+            //！实例对象也记录到 Mgr 中
             AnimationInstancingMgr.Instance.AddInstance(gameObject);
         }
 
@@ -184,10 +231,12 @@ namespace AnimationInstancing
         {
             if (!AnimationInstancingMgr.IsDestroy())
             {
+                //！移除掉这个实例
                 AnimationInstancingMgr.Instance.RemoveInstance(this);
             }
             if (parentInstance != null)
             {
+                //! 解除关联
                 parentInstance.Deattach(this);
                 parentInstance = null;
             }
@@ -219,7 +268,10 @@ namespace AnimationInstancing
             }
         }
 
-
+        /// <summary>
+        /// ！初始化动画
+        /// </summary>
+        /// <returns></returns>
         public bool InitializeAnimation()
         {
 			if(prototype == null) 
@@ -300,9 +352,13 @@ namespace AnimationInstancing
             Destroy(GetComponent<Animator>());
             //Destroy(GetComponentInChildren<SkinnedMeshRenderer>());
 
+            //！播放第一个索引的动画
             PlayAnimation(0);
         }
 
+        /// <summary>
+        /// ! 计算得到一个合适的 包围盒
+        /// </summary>
         private void CalcBoundingSphere()
         {
             UnityEngine.Profiling.Profiler.BeginSample("CalcBoundingSphere()");
@@ -324,14 +380,22 @@ namespace AnimationInstancing
             UnityEngine.Profiling.Profiler.EndSample();
         }
 
-
+        /// <summary>
+        /// ！通过名称的方式播放动画
+        /// </summary>
+        /// <param name="name"></param>
         public void PlayAnimation(string name)
         {
             int hash = name.GetHashCode();
+            //！ 将List 内Hash 一样的索引 输出
             int index = FindAnimationInfo(hash);
             PlayAnimation(index);
         }
 
+        /// <summary>
+        /// ！ 播放动画
+        /// </summary>
+        /// <param name="animationIndex"></param>
         public void PlayAnimation(int animationIndex)
         {
             if (aniInfo == null)
@@ -340,6 +404,7 @@ namespace AnimationInstancing
             }
             if (animationIndex == aniIndex && !IsPause())
             {
+                //同一个动画，
                 return;
             }
 
@@ -347,16 +412,21 @@ namespace AnimationInstancing
             transitionProgress = 1.0f;
             isInTransition = false;
             Debug.Assert(animationIndex < aniInfo.Count);
+            //！合理范围内的动画索引
             if (0 <= animationIndex && animationIndex < aniInfo.Count)
             {
                 preAniIndex = aniIndex;
                 aniIndex = animationIndex;
+                //! 往前多采样半帧
                 preAniFrame = (float)(int)(curFrame + 0.5f);
+                //！帧号归零
                 curFrame = 0.0f;
+                //？动画事件重置？？
                 eventIndex = -1;
                 preAniTextureIndex = aniTextureIndex;
                 aniTextureIndex = aniInfo[aniIndex].textureIndex;
                 wrapMode = aniInfo[aniIndex].wrapMode;
+                //！设定一个常规速度
                 speedParameter = 1.0f;
             }
             else
@@ -367,6 +437,11 @@ namespace AnimationInstancing
             RefreshAttachmentAnimation(aniTextureIndex);
         }
 
+        /// <summary>
+        /// ！设定过度时间
+        /// </summary>
+        /// <param name="animationName"></param>
+        /// <param name="duration"></param>
         public void CrossFade(string animationName, float duration)
         {
             int hash = animationName.GetHashCode();
@@ -374,6 +449,11 @@ namespace AnimationInstancing
             CrossFade(index, duration);
         }
 
+        /// <summary>
+        /// ！设定过度时间
+        /// </summary>
+        /// <param name="animationIndex"></param>
+        /// <param name="duration"></param>
         public void CrossFade(int animationIndex, float duration)
         {
             PlayAnimation(animationIndex);
@@ -437,6 +517,9 @@ namespace AnimationInstancing
             return null;
         }
 
+        /// <summary>
+        /// ? Tick 动画
+        /// </summary>
         public void UpdateAnimation()
         {
             if (aniInfo == null || IsPause())
@@ -585,6 +668,7 @@ namespace AnimationInstancing
                 return;
             }
 
+            //! Attach 需要指定 Parent
             attachment.parentInstance = this;
             AnimationInstancingMgr.VertexCache parentCache = AnimationInstancingMgr.Instance.FindVertexCache(lodInfo[0].skinnedMeshRenderer[0].name.GetHashCode());
             listAttachment.Add(attachment);
@@ -633,7 +717,10 @@ namespace AnimationInstancing
             }
         }
 
-
+        /// <summary>
+        /// ！解除关联
+        /// </summary>
+        /// <param name="attachment"></param>
         public void Deattach(AnimationInstancing attachment)
         {
             attachment.visible = false;
@@ -647,6 +734,10 @@ namespace AnimationInstancing
             return aniInfo != null? aniInfo.Count: 0;
         }
 
+        /// <summary>
+        /// ？？？？刷新挂点的动画
+        /// </summary>
+        /// <param name="index"></param>
         private void RefreshAttachmentAnimation(int index)
         {
             for (int k = 0; k != listAttachment.Count; ++k)

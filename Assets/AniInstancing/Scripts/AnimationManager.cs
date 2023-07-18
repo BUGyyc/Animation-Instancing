@@ -28,8 +28,15 @@ namespace AnimationInstancing
             public ExtraBoneInfo extraBoneInfo;
         }
         private List<CreateAnimationRequest> m_requestList;
+
+        /// <summary>
+        /// ！ 通过 Prefab 映射的 动画信息实例
+        /// </summary>
         private Dictionary<GameObject, InstanceAnimationInfo> m_animationInfo;
 
+        /// <summary>
+        /// ！ 主包
+        /// </summary>
         private AssetBundle m_mainBundle;
         bool m_useBundle = false;
 
@@ -58,6 +65,12 @@ namespace AnimationInstancing
             m_requestList.Clear();
         }
 
+        /// <summary>
+        /// ！ 查找 动画信息
+        /// </summary>
+        /// <param name="prefab"></param>
+        /// <param name="instance"></param>
+        /// <returns></returns>
         public InstanceAnimationInfo FindAnimationInfo(GameObject prefab, AnimationInstancing instance)
         {
             Debug.Assert(prefab != null);
@@ -91,6 +104,11 @@ namespace AnimationInstancing
                 return CreateAnimationInfoFromFile(prefab);
         }
 
+        /// <summary>
+        /// ！ 加载动画的 AB 包
+        /// </summary>
+        /// <param name="path"></param>
+        /// <returns></returns>
         public IEnumerator LoadAnimationAssetBundle(string path)
         {
             m_useBundle = true;
@@ -104,6 +122,9 @@ namespace AnimationInstancing
             }
         }
 
+        /// <summary>
+        /// ！ 卸载主包
+        /// </summary>
         public void UnloadAnimationAssetBundle()
         {
             if (m_mainBundle != null)
@@ -112,6 +133,11 @@ namespace AnimationInstancing
             }
         }
 
+        /// <summary>
+        /// ！从AB 中加载出 动画信息
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
         private IEnumerator LoadAnimationInfoFromAssetBundle(CreateAnimationRequest request)
         {
             Debug.Assert(m_mainBundle);
@@ -139,6 +165,11 @@ namespace AnimationInstancing
             }
         }
 
+        /// <summary>
+        /// ！从文件中读取 并 创建动画信息
+        /// </summary>
+        /// <param name="prefab"></param>
+        /// <returns></returns>
         private InstanceAnimationInfo CreateAnimationInfoFromFile(GameObject prefab)
         {
             Debug.Assert(prefab != null);
@@ -192,6 +223,12 @@ namespace AnimationInstancing
             return info;
         }
 
+
+        /// <summary>
+        /// ！ 读取动画信息
+        /// </summary>
+        /// <param name="reader"></param>
+        /// <returns></returns>
         private List<AnimationInfo> ReadAnimationInfo(BinaryReader reader)
         {
             int count = reader.ReadInt32();
@@ -242,6 +279,11 @@ namespace AnimationInstancing
             return listInfo;
         }
 
+        /// <summary>
+        /// ! 读取额外骨骼信息
+        /// </summary>
+        /// <param name="reader"></param>
+        /// <returns></returns>
         private ExtraBoneInfo ReadExtraBoneInfo(BinaryReader reader)
         {
             ExtraBoneInfo info = null;

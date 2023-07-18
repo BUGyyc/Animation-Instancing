@@ -231,7 +231,6 @@ GameObject:
   - component: {fileID: 4683082814364984}
   - component: {fileID: 95179353350947630}
   - component: {fileID: 114583898038997980}
-  - component: {fileID: 114023156843901260}
   m_Layer: 0
   m_Name: Unity_Model_instancing
   m_TagString: Untagged
@@ -293,19 +292,6 @@ MonoBehaviour:
   receiveShadow: 0
   applyRootMotion: 0
   bonePerVertex: 4
---- !u!114 &114023156843901260
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1095790121983962}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4f9083f381b054d9e8cc1b0d369c0833, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  attachment: {fileID: 0}
 --- !u!1 &1143438954332228
 GameObject:
   m_ObjectHideFlags: 0
