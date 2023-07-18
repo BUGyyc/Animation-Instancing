@@ -147,9 +147,13 @@ namespace AnimationInstancing
                             UnityEditor.AnimationUtility.SetAnimationEvents(obj.Key, obj.Value);
                         }
                         cacheAnimationEvent.Clear();
+                        //! Init Texture
                         PrepareBoneTexture(aniInfo);
+                        //! Set Date To Texture
                         SetupAnimationTexture(aniInfo);
+                        //! Save Sample Animation Data , is byte File
                         SaveAnimationInfo(generatedPrefab.name);
+                        //! destroy temp GameObject
                         DestroyImmediate(workingInfo.animator.gameObject);
                         EditorUtility.ClearProgressBar();
                     }
@@ -166,6 +170,7 @@ namespace AnimationInstancing
                 }
                 
                 float deltaTime = workingInfo.length / (workingInfo.info.totalFrame - 1);
+                //! Tick Animator 
                 workingInfo.animator.Update(deltaTime);
                 // EditorUtility.DisplayProgressBar("Generating Animations",
                 //     string.Format("Animation '{0}' is Generating.", workingInfo.info.animationName),

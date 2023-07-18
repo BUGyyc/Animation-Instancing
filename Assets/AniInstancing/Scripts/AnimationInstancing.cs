@@ -495,6 +495,7 @@ namespace AnimationInstancing
             curFrame = Mathf.Clamp(curFrame, 0f, totalFrame - 1);
             for (int i = 0; i != listAttachment.Count; ++i)
             {
+                //! Update Attach Point
                 AnimationInstancing attachment = listAttachment[i];
                 attachment.transform.position = transform.position;
                 attachment.transform.rotation = transform.rotation;

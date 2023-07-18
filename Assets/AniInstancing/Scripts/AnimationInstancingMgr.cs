@@ -166,6 +166,8 @@ namespace AnimationInstancing
                                     package.propertyBlock.SetFloatArray("frameIndex", data.frameIndex[k][i]);
                                     package.propertyBlock.SetFloatArray("preFrameIndex", data.preFrameIndex[k][i]);
                                     package.propertyBlock.SetFloatArray("transitionProgress", data.transitionProgress[k][i]);
+
+                                    //! Hard Core , Draw Mesh Instanced
                                     Graphics.DrawMeshInstanced(vertexCache.mesh,
                                         j,
                                         package.material[j],
@@ -422,7 +424,7 @@ namespace AnimationInstancing
             }
         }
 
-
+        //! Calculate Root Position And Rotation
         private void ApplyRootMotion(AnimationInstancing instance)
         {
             AnimationInfo info = instance.GetCurrentAnimationInfo();
@@ -440,11 +442,14 @@ namespace AnimationInstancing
             Vector3 angularVelocity = Vector3.Lerp(info.angularVelocity[preSampleFrame], info.angularVelocity[nextSampleFrame], instance.curFrame - preSampleFrame);
 
             {
+
+                //! Calculate Frame Position Rotation
                 Quaternion localQuaternion = instance.worldTransform.localRotation;
                 Quaternion delta = Quaternion.Euler(angularVelocity * Time.deltaTime);
                 localQuaternion = localQuaternion * delta;
 
                 Vector3 offset = velocity * Time.deltaTime;
+                //! With Rotate offset
                 offset = localQuaternion * offset;
                 //offset.y = 0.0f;
                 Vector3 localPosition = instance.worldTransform.localPosition;
@@ -523,6 +528,7 @@ namespace AnimationInstancing
                 int byteLength = reader.ReadInt32();
                 byte[] b = new byte[byteLength];
                 b = reader.ReadBytes(byteLength);
+                //!  Create Texture By Raw Byte File
                 Texture2D texture = new Texture2D(textureWidth, textureHeight, format, false);
                 texture.LoadRawTextureData(b);
                 texture.filterMode = FilterMode.Point;

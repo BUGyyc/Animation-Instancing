@@ -2,6 +2,11 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+
+
+/// <summary>
+/// ! Sample Attach Point , exp: Weapon Point
+/// </summary>
 public class AttachmentSample : MonoBehaviour 
 {
 	public GameObject attachment = null;

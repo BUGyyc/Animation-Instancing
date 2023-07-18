@@ -49,6 +49,7 @@ namespace AnimationInstancing
             if (m_mainBundle == null || m_requestList.Count == 0)
                 return;
 
+            //! Load Animation Req List
             for (int i = 0; i != m_requestList.Count; ++i)
             {
                 CreateAnimationRequest request = m_requestList[i];
