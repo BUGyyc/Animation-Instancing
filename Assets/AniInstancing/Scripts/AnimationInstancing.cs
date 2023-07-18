@@ -94,7 +94,9 @@ namespace AnimationInstancing
         [NonSerialized]
         public float transitionProgress = 0.0f;
         private int eventIndex = -1;
-
+        /// <summary>
+        /// ！实例包含的动画信息
+        /// </summary>
         public List<AnimationInfo> aniInfo;
         private ComparerHash comparer;
         private AnimationInfo searchInfo;
@@ -109,8 +111,17 @@ namespace AnimationInstancing
             public AnimationInstancingMgr.MaterialBlock[] materialBlockList;
         }
         [NonSerialized]
+        /// <summary>
+        /// ！保存实例的 Lod 信息
+        /// </summary>
         public LodInfo[] lodInfo;
+        /// <summary>
+        /// ! Lod 的计算频率
+        /// </summary>
         private float lodCalculateFrequency = 0.5f;
+        /// <summary>
+        /// ！ Lod 频率计时器
+        /// </summary>
         private float lodFrequencyCount = 0.0f;
         [NonSerialized]
         public int lodLevel;
@@ -138,7 +149,7 @@ namespace AnimationInstancing
             listAttachment = new List<AnimationInstancing>();
             layer = gameObject.layer;
             
-            //！蒙皮受骨骼影响的骨骼数量
+            //！蒙皮受骨骼影响的骨骼数量，部分机型，不希望太大，提升性能
             switch (QualitySettings.skinWeights)
             {
                 case SkinWeights.TwoBones:
@@ -470,14 +481,22 @@ namespace AnimationInstancing
             transitionDuration = duration;
         }
 
+        /// <summary>
+        /// ！ 暂停
+        /// </summary>
         public void Pause()
         {
+            //！ 记录暂停前的速度
             cacheParameter = speedParameter;
             speedParameter = 0.0f;
         }
 
+        /// <summary>
+        /// ！继续播放
+        /// </summary>
         public void Resume()
         {
+            //！ 恢复到暂停前的速度
             speedParameter = cacheParameter;
         }
 
@@ -499,6 +518,10 @@ namespace AnimationInstancing
             return aniInfo != null;
         }
 
+        /// <summary>
+        /// ！获取当前索引状态下的 动画信息
+        /// </summary>
+        /// <returns></returns>
         public AnimationInfo GetCurrentAnimationInfo()
         {
             if (aniInfo != null && 0 <= aniIndex && aniIndex < aniInfo.Count)
@@ -508,6 +531,10 @@ namespace AnimationInstancing
             return null;
         }
 
+        /// <summary>
+        /// ！获取即将播放的动画信息
+        /// </summary>
+        /// <returns></returns>
         public AnimationInfo GetPreAnimationInfo()
         {
             if (aniInfo != null && 0 <= preAniIndex && preAniIndex < aniInfo.Count)
@@ -527,17 +554,22 @@ namespace AnimationInstancing
 
             if (isInTransition)
             {
+                //! 处于过度动画中
                 transitionTimer += Time.deltaTime;
                 float weight = transitionTimer / transitionDuration;
+                //！计算进度
                 transitionProgress = Mathf.Min(weight, 1.0f);
                 if (transitionProgress >= 1.0f)
                 {
+                    //！过度动画结束，标记结束
                     isInTransition = false;
                     preAniIndex = -1;
                     preAniFrame = -1;
                 }
             }
+            //！得到一个最终速度
             float speed = playSpeed * speedParameter;
+            //! 得到 Tick 的帧号
             curFrame += speed * Time.deltaTime * aniInfo[aniIndex].fps;
             int totalFrame = aniInfo[aniIndex].totalFrame;
             switch (wrapMode)
@@ -574,7 +606,7 @@ namespace AnimationInstancing
                     break;
                 }
             }
-
+            //！纠正最后的帧号取值范围
             curFrame = Mathf.Clamp(curFrame, 0f, totalFrame - 1);
             for (int i = 0; i != listAttachment.Count; ++i)
             {
@@ -586,6 +618,10 @@ namespace AnimationInstancing
             UpdateAnimationEvent();
         }
 
+        /// <summary>
+        /// ！ 根据相机位置，更新 LOD
+        /// </summary>
+        /// <param name="cameraPosition"></param>
         public void UpdateLod(Vector3 cameraPosition)
         {
             lodFrequencyCount += Time.deltaTime;
@@ -603,6 +639,9 @@ namespace AnimationInstancing
             }
         }
 
+        /// <summary>
+        /// ！ 更新动画事件
+        /// </summary>
         private void UpdateAnimationEvent()
         {
             AnimationInfo info = GetCurrentAnimationInfo();
@@ -636,6 +675,11 @@ namespace AnimationInstancing
             }
         }
 
+        /// <summary>
+        /// ！ 根据Hash，查找动画索引
+        /// </summary>
+        /// <param name="hash"></param>
+        /// <returns></returns>
         private int FindAnimationInfo(int hash)
         {
             if (aniInfo == null)
@@ -644,6 +688,11 @@ namespace AnimationInstancing
             return aniInfo.BinarySearch(searchInfo, comparer);
         }
 
+        /// <summary>
+        /// ！通过骨骼名称，管理挂载点，例如：武器节点关联
+        /// </summary>
+        /// <param name="boneName"></param>
+        /// <param name="attachment"></param>
         public void Attach(string boneName, AnimationInstancing attachment)
         {
             int index = -1;
@@ -729,6 +778,10 @@ namespace AnimationInstancing
             listAttachment.Remove(attachment);
         }
 
+        /// <summary>
+        /// ！获取动画数量
+        /// </summary>
+        /// <returns></returns>
         public int GetAnimationCount()
         {
             return aniInfo != null? aniInfo.Count: 0;

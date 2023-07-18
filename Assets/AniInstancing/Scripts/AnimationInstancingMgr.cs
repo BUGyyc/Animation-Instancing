@@ -26,6 +26,9 @@ namespace AnimationInstancing
             public List<float[]>[] transitionProgress;
         }
 
+        /// <summary>
+        /// ！ 单个实例有关的数据
+        /// </summary>
         public class InstancingPackage
         {
             public Material[] material;
@@ -35,6 +38,10 @@ namespace AnimationInstancing
             public int size;
             public MaterialPropertyBlock propertyBlock;
         }
+
+        /// <summary>
+        /// ?? 材质块的数据
+        /// </summary>
         public class MaterialBlock
         {
             public InstanceData instanceData;
@@ -70,10 +77,19 @@ namespace AnimationInstancing
         }
 
         // all object used animation instancing
+        /// <summary>
+        /// ！ 记录所有的动画实例
+        /// </summary>
         List<AnimationInstancing> aniInstancingList;
         // to calculate lod level
         private Transform cameraTransform; 
+        /// <summary>
+        /// ???
+        /// </summary>
         private Dictionary<int, VertexCache> vertexCachePool;
+        /// <summary>
+        /// ??
+        /// </summary>
         private Dictionary<int, InstanceData> instanceDataPool;
         const int InstancingSizePerPackage = 200;
         int instancingPackageSize = InstancingSizePerPackage;
@@ -82,6 +98,11 @@ namespace AnimationInstancing
             get { return instancingPackageSize; }
             set { instancingPackageSize = value; }
         }
+        /// <summary>
+        /// ! 记录 动画相关的 Texture
+        /// </summary>
+        /// <typeparam name="AnimationTexture"></typeparam>
+        /// <returns></returns>
         private List<AnimationTexture> animationTextureList = new List<AnimationTexture>();
 
         [SerializeField]
@@ -92,6 +113,9 @@ namespace AnimationInstancing
             set { useInstancing = value; }
         }
 
+        /// <summary>
+        ///！ 所有的包围盒
+        /// </summary>
         BoundingSphere[] boundingSphere;
         int usedBoundingSphereCount = 0;
 
@@ -124,6 +148,9 @@ namespace AnimationInstancing
             
         }
 
+        /// <summary>
+        /// ！ 初始化 CullingGroup
+        /// </summary>
         private void InitializeCullingGroup()
         {
             cullingGroup = new CullingGroup();
@@ -228,6 +255,11 @@ namespace AnimationInstancing
             InitializeCullingGroup();
         }
 
+        /// <summary>
+        /// ！创建一个 实例
+        /// </summary>
+        /// <param name="prefab"></param>
+        /// <returns></returns>
         public GameObject CreateInstance(GameObject prefab)
         {
             Debug.Assert(prefab != null);
@@ -238,6 +270,10 @@ namespace AnimationInstancing
             return obj;
         }
 
+        /// <summary>
+        /// ！记录一个实例
+        /// </summary>
+        /// <param name="obj"></param>
         public void AddInstance(GameObject obj)
         {
             AnimationInstancing script = obj.GetComponent<AnimationInstancing>();
@@ -262,7 +298,12 @@ namespace AnimationInstancing
                 script.enabled = false;
             }
         }
+        
 
+        /// <summary>
+        /// ！移除实例
+        /// </summary>
+        /// <param name="instance"></param>
         public void RemoveInstance(AnimationInstancing instance)
         {
             Debug.Assert(aniInstancingList != null);
@@ -298,6 +339,10 @@ namespace AnimationInstancing
         }
 #endif
 
+
+        /// <summary>
+        /// ！ 刷新材质
+        /// </summary>
         void RefreshMaterial()
         {
             if (vertexCachePool == null)
@@ -321,6 +366,9 @@ namespace AnimationInstancing
             }
         }
        
+        /// <summary>
+        /// ！计算骨骼的矩阵
+        /// </summary>
         void ApplyBoneMatrix()
         {
             Vector3 cameraPosition = cameraTransform.position;
@@ -329,7 +377,7 @@ namespace AnimationInstancing
                 AnimationInstancing instance = aniInstancingList[i];
                 if (!instance.IsPlaying())
                     continue;
-                //! 这里的 ？？ aniIndex 比较特别-----------------------------------------------------
+                //! 这里的 aniIndex 是动画索引
                 if (instance.aniIndex < 0 && instance.parentInstance == null)
                     continue;
 
@@ -439,6 +487,7 @@ namespace AnimationInstancing
                 return;
 
             int preSampleFrame = (int)instance.curFrame;
+            //！ 下一帧
             int nextSampleFrame = (int)(instance.curFrame + 1.0f);
             if (nextSampleFrame >= info.totalFrame)
                 return;
@@ -526,6 +575,7 @@ namespace AnimationInstancing
             aniTexture.name = prefabName;
             aniTexture.blockWidth = blockWidth;
             aniTexture.blockHeight = blockHeight;
+            //！ 将动画需要的 Texture 记录下来
             animationTextureList.Add(aniTexture);
 
             for (int i = 0; i != count; ++i)
@@ -748,6 +798,7 @@ namespace AnimationInstancing
             vertexCache.boneIndex = new Vector4[mesh.vertexCount];
             int packageCount = GetPackageCount(vertexCache);
             InstanceData data = null;
+            //!
             int instanceName = prefabName.GetHashCode() + alias;
             if (!instanceDataPool.TryGetValue(instanceName, out data))
             {
