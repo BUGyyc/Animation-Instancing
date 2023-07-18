@@ -125,6 +125,9 @@ namespace AnimationInstancing
         private float lodFrequencyCount = 0.0f;
         [NonSerialized]
         public int lodLevel;
+        /// <summary>
+        /// ！相关的 骨骼 Transform
+        /// </summary>
         private Transform[] allTransforms;
         private bool isMeshRender = false;
         [NonSerialized]
@@ -176,6 +179,7 @@ namespace AnimationInstancing
 
                     LodInfo info = new LodInfo();
                     info.lodLevel = i;
+                    //！只是初始化了数组，并没有立刻写入数据
                     info.vertexCacheList = new AnimationInstancingMgr.VertexCache[lods[i].renderers.Length];
                     info.materialBlockList = new AnimationInstancingMgr.MaterialBlock[info.vertexCacheList.Length];
                     List<SkinnedMeshRenderer> listSkinnedMeshRenderer = new List<SkinnedMeshRenderer>();
@@ -188,6 +192,7 @@ namespace AnimationInstancing
                         if (render is MeshRenderer)
                             listMeshRenderer.Add((MeshRenderer)render);
                     }
+                    //! 把 Mesh 数据记录下来
                     info.skinnedMeshRenderer = listSkinnedMeshRenderer.ToArray();
                     info.meshRenderer = listMeshRenderer.ToArray();
                     //todo, to make sure whether the MeshRenderer can be in the LOD.
@@ -202,6 +207,7 @@ namespace AnimationInstancing
             }
             else
             {
+                //! 没有更多的 LOD 信息，默认只用一个
                 lodInfo = new LodInfo[1];
                 LodInfo info = new LodInfo();
                 info.lodLevel = 0;
@@ -230,6 +236,7 @@ namespace AnimationInstancing
                 animator.enabled = false;
             }
             visible = true;
+            //! 计算包围盒
             CalcBoundingSphere();
             //！包围盒 记录到 Mgr 中
             AnimationInstancingMgr.Instance.AddBoundingSphere(this);
@@ -315,12 +322,17 @@ namespace AnimationInstancing
             return true;
         }
 
+        /// <summary>
+        /// ???
+        /// </summary>
+        /// <param name="infoList"></param>
+        /// <param name="extraBoneInfo"></param>
         public void Prepare(List<AnimationInfo> infoList, ExtraBoneInfo extraBoneInfo)
         {
             aniInfo = infoList;
             //extraBoneInfo = extraBoneInfo;
             List<Matrix4x4> bindPose = new List<Matrix4x4>(150);
-            // to optimize, MergeBone don't need to call every time
+            //todo: to optimize, MergeBone don't need to call every time
             Transform[] bones = RuntimeHelper.MergeBone(lodInfo[0].skinnedMeshRenderer, bindPose);
             allTransforms = bones;
 
@@ -340,10 +352,11 @@ namespace AnimationInstancing
                     }
                     bindPose.Add(extraBoneInfo.extraBindPose[i]);
                 }
+                //! 记录下，所有的骨骼 Transform
                 allTransforms = list.ToArray();
             }
             
-
+            //! 添加 MeshVertex   HardCore-----------------------------------------
 			AnimationInstancingMgr.Instance.AddMeshVertex(prototype.name,
                 lodInfo,
                 allTransforms,
