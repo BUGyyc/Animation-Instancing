@@ -546,6 +546,11 @@ namespace AnimationInstancing
             }
         }
 
+        /// <summary>
+        /// ！通过名称，查找 AnimationTexture 数据
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
         private int FindTexture_internal(string name)
         {
             for (int i = 0; i != animationTextureList.Count; ++i)
@@ -559,6 +564,11 @@ namespace AnimationInstancing
             return -1;
         }
 
+        /// <summary>
+        /// ！查找 AnimationTexture
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
         public AnimationTexture FindTexture(string name)
         {
             int index = FindTexture_internal(name);
@@ -577,7 +587,11 @@ namespace AnimationInstancing
             return null;
         }
 
-
+        /// <summary>
+        /// ! 从池中查找 VertexCache
+        /// </summary>
+        /// <param name="renderName"></param>
+        /// <returns></returns>
         public VertexCache FindVertexCache(int renderName)
         {
             VertexCache cache = null;
@@ -585,6 +599,11 @@ namespace AnimationInstancing
             return cache;
         }
 
+        /// <summary>
+        /// ! 从字节数据从读到 AnimationTexture
+        /// </summary>
+        /// <param name="reader"></param>
+        /// <param name="prefabName"></param>
         private void ReadTexture(BinaryReader reader, string prefabName)
         {
             TextureFormat format = TextureFormat.RGBAHalf;
@@ -621,6 +640,12 @@ namespace AnimationInstancing
             }
         }
 
+        /// <summary>
+        /// ！从字节数据中 导入 AnimationTexture
+        /// </summary>
+        /// <param name="prefabName"></param>
+        /// <param name="reader"></param>
+        /// <returns></returns>
         public bool ImportAnimationTexture(string prefabName, BinaryReader reader)
         {
             if (FindTexture_internal(prefabName) >= 0)
@@ -632,6 +657,9 @@ namespace AnimationInstancing
             return true;
         }
 
+        /// <summary>
+        /// ！清理数据
+        /// </summary>
         private void ReleaseBuffer()
         {
             if (vertexCachePool != null)
@@ -675,6 +703,7 @@ namespace AnimationInstancing
                 package.material[i].DisableKeyword("USE_COMPUTE_BUFFER");
             }
 
+            //! 初始化了多个集合容器的Size
             Matrix4x4[] mat = new Matrix4x4[instancingPackageSize];
             float[] frameIndex = new float[instancingPackageSize];
             float[] preFrameIndex = new float[instancingPackageSize];
@@ -761,7 +790,9 @@ namespace AnimationInstancing
                         MaterialBlock block = null;
                         if (!cache.instanceBlockList.TryGetValue(identify, out block))
                         {
+                            //! 创建一个 MaterialBlock
                             block = CreateBlock(cache, lod.skinnedMeshRenderer[i].sharedMaterials);
+                            //！缓存下来
                             cache.instanceBlockList.Add(identify, block);
                         }
                         lod.vertexCacheList[i] = cache;
@@ -789,6 +820,7 @@ namespace AnimationInstancing
 
                     int renderName = lod.meshRenderer[i].name.GetHashCode();
                     int aliasName = (alias != null ? alias.GetHashCode() : 0);
+                    //! 通过材质得到的 Key
                     int identify = GetIdentify(lod.meshRenderer[i].sharedMaterials);
                     VertexCache cache = null;
                     if (vertexCachePool.TryGetValue(renderName + aliasName, out cache))
@@ -809,7 +841,9 @@ namespace AnimationInstancing
                         vertexCache.bindPose = bindPose.ToArray();
                     MaterialBlock matBlock = CreateBlock(vertexCache, lod.meshRenderer[i].sharedMaterials);
                     vertexCache.instanceBlockList.Add(identify, matBlock);
+                    //！组装数据
                     SetupVertexCache(vertexCache, matBlock, lod.meshRenderer[i], m, bones, bonePerVertex);
+                    //! 相当于 累计了 Lod 的等级
                     lod.vertexCacheList[lod.skinnedMeshRenderer.Length + i] = vertexCache;
                     lod.materialBlockList[lod.skinnedMeshRenderer.Length + i] = matBlock;
                 }
@@ -1034,6 +1068,15 @@ namespace AnimationInstancing
         }
 
 
+        /// <summary>
+        /// ！组装数据 ， 针对于 MeshRenderer
+        /// </summary>
+        /// <param name="vertexCache"></param>
+        /// <param name="block"></param>
+        /// <param name="render"></param>
+        /// <param name="mesh"></param>
+        /// <param name="boneTransform"></param>
+        /// <param name="bonePerVertex"></param>
         private void SetupVertexCache(VertexCache vertexCache,
             MaterialBlock block,
             MeshRenderer render,
@@ -1152,9 +1195,16 @@ namespace AnimationInstancing
             }
         }
 
-
+        /// <summary>
+        /// ! 绑定挂载点
+        /// </summary>
+        /// <param name="parentCache"></param>
+        /// <param name="attachmentCache"></param>
+        /// <param name="sharedMesh"></param>
+        /// <param name="boneIndex"></param>
         public void BindAttachment(VertexCache parentCache, VertexCache attachmentCache, Mesh sharedMesh, int boneIndex)
         {
+            //！ 取下 ParentCache 的逆矩阵
             Matrix4x4 mat = parentCache.bindPose[boneIndex].inverse;
             attachmentCache.mesh = Instantiate(sharedMesh);
             Vector3 offset = mat.GetColumn(3);
@@ -1162,6 +1212,7 @@ namespace AnimationInstancing
             Vector3[] vertices = attachmentCache.mesh.vertices;
             for (int k = 0; k != attachmentCache.mesh.vertexCount; ++k)
             {
+                //！重新计算坐标
                 vertices[k] = q * vertices[k];
                 vertices[k] = vertices[k] + offset;
             }
@@ -1169,6 +1220,7 @@ namespace AnimationInstancing
 
             for (int j = 0; j != attachmentCache.mesh.vertexCount; ++j)
             {
+                //！设定，只受一根骨骼影响
                 attachmentCache.weight[j].x = 1.0f;
                 attachmentCache.weight[j].y = -0.1f;
                 attachmentCache.weight[j].z = -0.1f;
