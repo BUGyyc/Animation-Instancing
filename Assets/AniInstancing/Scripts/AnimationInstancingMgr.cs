@@ -17,52 +17,18 @@ namespace AnimationInstancing
     [AddComponentMenu("AnimationInstancingMgr")]
     public class AnimationInstancingMgr : Singleton<AnimationInstancingMgr>
     {
-        // array[index base on texture][package index][instance index]
-        /// <summary>
-        /// ？传递给 Shader 的数据
-        /// </summary>
-        public class InstanceData
-        {
-            public List<Matrix4x4[]>[] worldMatrix;
-            public List<float[]>[] frameIndex;
-            public List<float[]>[] preFrameIndex;
-            public List<float[]>[] transitionProgress;
-        }
 
         /// <summary>
-        /// ！ 单个实例有关的数据
-        /// </summary>
-        public class InstancingPackage
-        {
-            public Material[] material;
-            public int animationTextureIndex = 0;
-            public int subMeshCount = 1;
-            public int instancingCount;
-            public int size;
-            public MaterialPropertyBlock propertyBlock;
-        }
-
-        /// <summary>
-        /// ?? 材质块的数据
-        /// </summary>
-        public class MaterialBlock
-        {
-            public InstanceData instanceData;
-            public int[] runtimePackageIndex;
-            // array[index base on texture][package index]
-            public List<InstancingPackage>[] packageList;
-        }
-
-        /// <summary>
-        /// ???
+        /// ? 等同于Mesh的数据，包含Mesh本身和其他一些数据，例如权重信息
         /// </summary>
         public class VertexCache
         {
             public int nameCode;
             public Mesh mesh = null;
+            /// <summary>
+            /// ???   Key 是通过 材质 生成的HashCode
+            /// </summary>
             public Dictionary<int, MaterialBlock> instanceBlockList;
-
-
 
             //?? 引擎中，似乎也最多受四个骨骼影响，所以 Vector4 也够用了
             /// <summary>
@@ -84,6 +50,48 @@ namespace AnimationInstancing
             public int layer;
         }
 
+        /// <summary>
+        /// ?? 材质块的数据
+        /// </summary>
+        public class MaterialBlock
+        {
+            public InstanceData instanceData;
+            public int[] runtimePackageIndex;
+            // array[index base on texture][package index]
+            public List<InstancingPackage>[] packageList;
+        }
+
+        // array[index base on texture][package index][instance index]
+        /// <summary>
+        /// ？传递给 Shader 的数据
+        /// </summary>
+        public class InstanceData
+        {
+            public List<Matrix4x4[]>[] worldMatrix;
+            public List<float[]>[] frameIndex;
+            public List<float[]>[] preFrameIndex;
+            public List<float[]>[] transitionProgress;
+        }
+
+
+        /// <summary>
+        /// ！ 单个实例有关的数据
+        /// </summary>
+        public class InstancingPackage
+        {
+            public Material[] material;
+            public int animationTextureIndex = 0;
+            public int subMeshCount = 1;
+            public int instancingCount;
+            public int size;
+            //??
+            public MaterialPropertyBlock propertyBlock;
+        }
+
+
+        /// <summary>
+        /// ！ 动画Texture 导出数据
+        /// </summary>
         public class AnimationTexture
         {
             public string name { get; set; }
@@ -108,6 +116,9 @@ namespace AnimationInstancing
         /// </summary>
         private Dictionary<int, InstanceData> instanceDataPool;
         const int InstancingSizePerPackage = 200;
+        /// <summary>
+        /// ????
+        /// </summary>
         int instancingPackageSize = InstancingSizePerPackage;
         public int InstancingPackageSize
         {
@@ -627,16 +638,26 @@ namespace AnimationInstancing
                 vertexCachePool.Clear();
         }
 
-
+        /// <summary>
+        /// ! 创建一个 InstancePackage 数据
+        /// </summary>
+        /// <param name="data"></param>
+        /// <param name="mesh"></param>
+        /// <param name="originalMaterial"></param>
+        /// <param name="animationIndex"> 和动画索引有关系  </param>
+        /// <returns></returns>
         public InstancingPackage CreatePackage(InstanceData data, Mesh mesh, Material[] originalMaterial, int animationIndex)
         {
             InstancingPackage package = new InstancingPackage();
+            //! 多个 SubMesh , 多个 Material
             package.material = new Material[mesh.subMeshCount];
             package.subMeshCount = mesh.subMeshCount;
             package.size = 1;
             for (int i = 0; i != mesh.subMeshCount; ++i)
             {
                 package.material[i] = new Material(originalMaterial[i]);
+                
+                //！ 设定开启GPU-Instance
 #if UNITY_5_6_OR_NEWER
                 package.material[i].enableInstancing = UseInstancing;
 #endif
@@ -645,8 +666,12 @@ namespace AnimationInstancing
                 else
                     package.material[i].DisableKeyword("INSTANCING_ON");
 
+                //！给到材质属性块的对象
                 package.propertyBlock = new MaterialPropertyBlock();
+
+                //！开启
                 package.material[i].EnableKeyword("USE_CONSTANT_BUFFER");
+                //！关闭
                 package.material[i].DisableKeyword("USE_COMPUTE_BUFFER");
             }
 
@@ -810,7 +835,7 @@ namespace AnimationInstancing
         }
 
         /// <summary>
-        /// ??
+        /// ! 创建材质块数据
         /// </summary>
         /// <param name="cache"></param>
         /// <param name="materials"></param>
@@ -823,6 +848,7 @@ namespace AnimationInstancing
             block.packageList = new List<InstancingPackage>[packageCount];
             for (int i = 0; i != block.packageList.Length; ++i)
             {
+                //! 这里的 i 关联动画索引
                block.packageList[i] = new List<InstancingPackage>();
 
                InstancingPackage package = CreatePackage(block.instanceData, 
@@ -1070,6 +1096,12 @@ namespace AnimationInstancing
             vertexCache.mesh.UploadMeshData(false);
         }
 
+        /// <summary>
+        /// ! 给 Material 设定需要的数据
+        /// </summary>
+        /// <param name="package"></param>
+        /// <param name="vertexCache"></param>
+        /// <param name="aniTextureIndex"></param>
         public void PreparePackageMaterial(InstancingPackage package, VertexCache vertexCache, int aniTextureIndex)
         {
             if (vertexCache.boneTextureIndex < 0)
@@ -1086,7 +1118,10 @@ namespace AnimationInstancing
             }
         }
 
-
+        /// <summary>
+        ///！ 记录下包围盒
+        /// </summary>
+        /// <param name="instance"></param>
         public void AddBoundingSphere(AnimationInstancing instance)
         {
             boundingSphere[usedBoundingSphereCount++] = instance.boundingSpere;
