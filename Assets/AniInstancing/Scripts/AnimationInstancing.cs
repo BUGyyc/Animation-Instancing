@@ -632,6 +632,7 @@ namespace AnimationInstancing
                 attachment.transform.position = transform.position;
                 attachment.transform.rotation = transform.rotation;
             }
+            //！ 更新动画事件
             UpdateAnimationEvent();
         }
 

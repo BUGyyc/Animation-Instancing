@@ -231,6 +231,7 @@ namespace AnimationInstancing
         /// <returns></returns>
         private List<AnimationInfo> ReadAnimationInfo(BinaryReader reader)
         {
+            Debug.LogError("读取到  AnimationInfo 数据");
             int count = reader.ReadInt32();
             List<AnimationInfo>  listInfo = new List<AnimationInfo>();
             for (int i = 0; i != count; ++i)

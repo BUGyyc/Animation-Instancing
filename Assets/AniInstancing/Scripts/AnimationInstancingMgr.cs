@@ -326,6 +326,13 @@ namespace AnimationInstancing
             }
         }
         
+        
+
+        /// <summary>
+        /// ！移除实例
+        /// </summary>
+        /// <param name="instance"></param>
+
 
         /// <summary>
         /// ！移除实例
@@ -587,11 +594,7 @@ namespace AnimationInstancing
             return null;
         }
 
-        /// <summary>
-        /// ! 从池中查找 VertexCache
-        /// </summary>
-        /// <param name="renderName"></param>
-        /// <returns></returns>
+
         public VertexCache FindVertexCache(int renderName)
         {
             VertexCache cache = null;
@@ -606,6 +609,9 @@ namespace AnimationInstancing
         /// <param name="prefabName"></param>
         private void ReadTexture(BinaryReader reader, string prefabName)
         {
+
+            Debug.LogError("Create  Texture");
+
             TextureFormat format = TextureFormat.RGBAHalf;
             if (SystemInfo.graphicsDeviceType == UnityEngine.Rendering.GraphicsDeviceType.OpenGLES2)
             {
@@ -666,14 +672,7 @@ namespace AnimationInstancing
                 vertexCachePool.Clear();
         }
 
-        /// <summary>
-        /// ! 创建一个 InstancePackage 数据
-        /// </summary>
-        /// <param name="data"></param>
-        /// <param name="mesh"></param>
-        /// <param name="originalMaterial"></param>
-        /// <param name="animationIndex"> 和动画索引有关系  </param>
-        /// <returns></returns>
+
         public InstancingPackage CreatePackage(InstanceData data, Mesh mesh, Material[] originalMaterial, int animationIndex)
         {
             InstancingPackage package = new InstancingPackage();
@@ -779,7 +778,7 @@ namespace AnimationInstancing
                     Mesh m = lod.skinnedMeshRenderer[i].sharedMesh;
                     if (m == null)
                         continue;
-                    //! 通过Name 获取 Code
+
                     int nameCode = lod.skinnedMeshRenderer[i].name.GetHashCode();
                     //! 通过材质名称 获取 hash
                     int identify = GetIdentify(lod.skinnedMeshRenderer[i].sharedMaterials);
@@ -1020,7 +1019,7 @@ namespace AnimationInstancing
                 vertexCache.boneIndex[j].z
                     = boneIndex == null ? boneWeights[j].boneIndex2 : boneIndex[boneWeights[j].boneIndex2];
                 vertexCache.boneIndex[j].w
-                    = boneIndex == null ? boneWeights[j].boneIndex3 : boneIndex[boneWeights[j].boneIndex3];    
+                    = boneIndex == null ? boneWeights[j].boneIndex3 : boneIndex[boneWeights[j].boneIndex3];
                 Debug.Assert(vertexCache.boneIndex[j].x >= 0);
 
 
@@ -1161,10 +1160,7 @@ namespace AnimationInstancing
             }
         }
 
-        /// <summary>
-        ///！ 记录下包围盒
-        /// </summary>
-        /// <param name="instance"></param>
+
         public void AddBoundingSphere(AnimationInstancing instance)
         {
             boundingSphere[usedBoundingSphereCount++] = instance.boundingSpere;
@@ -1195,13 +1191,7 @@ namespace AnimationInstancing
             }
         }
 
-        /// <summary>
-        /// ! 绑定挂载点
-        /// </summary>
-        /// <param name="parentCache"></param>
-        /// <param name="attachmentCache"></param>
-        /// <param name="sharedMesh"></param>
-        /// <param name="boneIndex"></param>
+
         public void BindAttachment(VertexCache parentCache, VertexCache attachmentCache, Mesh sharedMesh, int boneIndex)
         {
             //！ 取下 ParentCache 的逆矩阵

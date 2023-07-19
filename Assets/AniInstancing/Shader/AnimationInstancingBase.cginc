@@ -26,6 +26,7 @@ UNITY_INSTANCING_BUFFER_START(Props)
 UNITY_INSTANCING_BUFFER_END(Props)
 #endif
 
+//! 通过帧号和骨骼索引号，得到矩阵
 half4x4 loadMatFromTexture(uint frameIndex, uint boneIndex)
 {
 	uint blockCount = _boneTextureWidth / _boneTextureBlockWidth;
@@ -104,6 +105,7 @@ half4 skinning(inout appdata_full v)
 	return localPos;
 }
 
+//! 计算带阴影投射的 GPU-Animation
 half4 skinningShadow(inout appdata_full v)
 {
 	half4 bone = half4(v.texcoord2.x, v.texcoord2.y, v.texcoord2.z, v.texcoord2.w);
@@ -118,10 +120,13 @@ half4 skinningShadow(inout appdata_full v)
 #endif
 	int preFrame = curFrame;
 	int nextFrame = curFrame + 1.0f;
+	//! 这一帧的矩阵
 	half4x4 localToWorldMatrixPre = loadMatFromTexture(preFrame, bone.x);
+	//! 下一帧的矩阵
 	half4x4 localToWorldMatrixNext = loadMatFromTexture(nextFrame, bone.x);
 	half4 localPosPre = mul(v.vertex, localToWorldMatrixPre);
 	half4 localPosNext = mul(v.vertex, localToWorldMatrixNext);
+	//！ 线性插值得到一个坐标
 	half4 localPos = lerp(localPosPre, localPosNext, curFrame - preFrame);
 	half4x4 localToWorldMatrixPreAni = loadMatFromTexture(preAniFrame, bone.x);
 	half4 localPosPreAni = mul(v.vertex, localToWorldMatrixPreAni);
@@ -130,6 +135,7 @@ half4 skinningShadow(inout appdata_full v)
 	return localPos;
 }
 
+//! 顶点着色器阶段
 void vert(inout appdata_full v)
 {
 #ifdef UNITY_PASS_SHADOWCASTER
