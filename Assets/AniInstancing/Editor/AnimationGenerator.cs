@@ -482,7 +482,9 @@ namespace AnimationInstancing
             }
         }
 
-
+        /// <summary>
+        /// ! 进行动画 Bake
+        /// </summary>
         void BakeWithAnimator()
         {
             if (generatedPrefab != null)
@@ -824,6 +826,14 @@ namespace AnimationInstancing
             return list;
         }
 
+        /// <summary>
+        /// ???????????????????
+        /// </summary>
+        /// <param name="nameCode"></param>
+        /// <param name="stateName"></param>
+        /// <param name="stateTime"></param>
+        /// <param name="rootMatrix1stFrame"></param>
+        /// <param name="rootMotion"></param>
         private void GenerateBoneMatrix(int nameCode,
             int stateName,
             float stateTime,
@@ -942,8 +952,16 @@ namespace AnimationInstancing
         }
 
         // calculate the texture count and every size
+        /// <summary>
+        /// ! 计算纹理尺寸
+        /// </summary>
+        /// <param name="textureCount"></param>
+        /// <param name="frames"></param>
+        /// <param name="bone"></param>
+        /// <returns></returns>
         public int CalculateTextureSize(out int textureCount, int[] frames, Transform[] bone = null)
         {
+            //! 初始默认尺寸
             int textureWidth = stardardTextureSize[0];
             int blockWidth = 0;
             int blockHeight = 0;
@@ -963,6 +981,7 @@ namespace AnimationInstancing
             for (int i = stardardTextureSize.Length - 1; i >= 0; --i)
             {
                 int size = stardardTextureSize[i];
+                //! 按预置尺寸计算得到的列数
                 int blockCountEachLine = size / blockWidth;
                 int x = 0, y = 0;
                 int k = 0;
@@ -980,6 +999,7 @@ namespace AnimationInstancing
 
                     if (y + blockHeight > size)
                     {
+                        //！超出尺寸
                         x = y = 0;
                         ++count;
                         k = j--;
@@ -987,7 +1007,7 @@ namespace AnimationInstancing
                         {
                             if (i == stardardTextureSize.Length - 1)
                             {
-                                //Debug.LogError("There is certain animation's frame larger than a texture.");
+                                Debug.LogError("There is certain animation's frame larger than a texture.");
                                 textureCount = 0;
                                 return -1;
                             }
