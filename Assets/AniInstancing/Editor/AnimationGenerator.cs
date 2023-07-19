@@ -731,12 +731,14 @@ namespace AnimationInstancing
                 }
             }
 
+            //！ 另外还把 texture 数据写入到 byte 中
             Texture2D[] texture = bakedBoneTexture;
             writer.Write(texture.Length);
             writer.Write(textureBlockWidth);
             writer.Write(textureBlockHeight);
             for (int i = 0; i != texture.Length; ++i)
             {
+                //! texture 像素内容写入 byte 内
                 byte[] bytes = texture[i].GetRawTextureData();
                 writer.Write(texture[i].width);
                 writer.Write(texture[i].height);
