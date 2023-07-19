@@ -7,6 +7,14 @@ namespace AnimationInstancing
 {
     class UtilityHelper
     {
+        /// <summary>
+        /// ! 得到最后的转换矩阵数据
+        /// </summary>
+        /// <param name="bonePose"></param>
+        /// <param name="bindPose"></param>
+        /// <param name="rootMatrix1stFrame"></param>
+        /// <param name="haveRootMotion"></param>
+        /// <returns></returns>
         public static Matrix4x4[] CalculateSkinMatrix(Transform[] bonePose,
             Matrix4x4[] bindPose,
             Matrix4x4 rootMatrix1stFrame,
@@ -31,6 +39,11 @@ namespace AnimationInstancing
         }
 
 
+        /// <summary>
+        /// ！把数据拷贝下来
+        /// </summary>
+        /// <param name="dst"></param>
+        /// <param name="src"></param>
         public static void CopyMatrixData(GenerateOjbectInfo dst, GenerateOjbectInfo src)
         {
             dst.animationTime = src.animationTime;

@@ -42,6 +42,9 @@ namespace AnimationInstancing
             public int layer;
             public AnimationInfo info;
         }
+        /// <summary>
+        /// ！ 记录 生成的 VertexCache ， render 名称对应的 HashCode 就是 Key
+        /// </summary>
         private Dictionary<int, AnimationInstancingMgr.VertexCache> generateVertexCachePool;
         private Dictionary<int, ArrayList> generateMatrixDataPool;
         private GenerateOjbectInfo[] generateObjectData;
@@ -88,6 +91,10 @@ namespace AnimationInstancing
         {
             EditorApplication.update -= GenerateAnimation;
         }
+
+        /// <summary>
+        /// ! 重置，清理数据
+        /// </summary>
         private void Reset()
         {
             pixelx = 0;
@@ -104,6 +111,7 @@ namespace AnimationInstancing
         {
             if (generateInfo.Count > 0 && workingInfo == null)
             {
+                //！取下第一个需要生成的动画
                 workingInfo = generateInfo[0];
                 generateInfo.RemoveAt(0);
 
@@ -129,14 +137,20 @@ namespace AnimationInstancing
                                             false);
                 }
                 //Debug.Log("The length is" + workingInfo.animator.velocity.magnitude);
+
+                //! 计算线速度和角速度
                 workingInfo.info.velocity[workingInfo.workingFrame] = workingInfo.animator.velocity;
                 workingInfo.info.angularVelocity[workingInfo.workingFrame] = workingInfo.animator.angularVelocity * Mathf.Rad2Deg;
 
                 if (++workingInfo.workingFrame >= workingInfo.info.totalFrame)
                 {
+                    //! 如果到了最后一帧 ？？？？？
                     aniInfo.Add(workingInfo.info);
                     if (generateInfo.Count == 0)
                     {
+                        //! List 中没有的 需要生成的动画   
+
+
                         foreach (var obj in cacheTransition)
                         {
                             obj.Key.transitions = obj.Value;
@@ -533,6 +547,7 @@ namespace AnimationInstancing
                     meshRender[j].enabled = true;
                 }
                 animator.applyRootMotion = true;
+                //! 重新计数
                 totalFrame = 0;
 
                 UnityEditor.Animations.AnimatorController controller = animator.runtimeAnimatorController as UnityEditor.Animations.AnimatorController;
@@ -545,7 +560,15 @@ namespace AnimationInstancing
             }
         }
 
-
+        /// <summary>
+        /// ！ 分析动画数据
+        /// </summary>
+        /// <param name="stateMachine"></param>
+        /// <param name="animator"></param>
+        /// <param name="meshRender"></param>
+        /// <param name="layer"></param>
+        /// <param name="bakeFPS"></param>
+        /// <param name="animationIndex"></param>
         void AnalyzeStateMachine(UnityEditor.Animations.AnimatorStateMachine stateMachine,
             Animator animator,
             SkinnedMeshRenderer[] meshRender,
@@ -572,6 +595,7 @@ namespace AnimationInstancing
                     continue;
                 foreach (var obj in generateInfo)
                 {
+                    //!已经生成过了，就不需要再生成了
                     if (obj.info.animationName == clip.name)
                     {
                         needBake = false;
@@ -582,6 +606,8 @@ namespace AnimationInstancing
                 if (!needBake)
                     continue;
 
+
+                //!  Animation Bake Core -------------------------------------------------------
                 AnimationBakeInfo bake = new AnimationBakeInfo();
                 bake.length = clip.averageDuration;
                 bake.animator = animator;
@@ -602,6 +628,7 @@ namespace AnimationInstancing
                     bake.info.velocity = new Vector3[bake.info.totalFrame];
                     bake.info.angularVelocity = new Vector3[bake.info.totalFrame];
                 }
+                //！记录需要生成的动画信息
                 generateInfo.Add(bake);
                 animationIndex += bake.info.totalFrame;
                 totalFrame += bake.info.totalFrame;
@@ -631,11 +658,16 @@ namespace AnimationInstancing
             }
             for (int i = 0; i != stateMachine.stateMachines.Length; ++i)
             {
+                //！ 嵌套的动画，继续递归分析
                 AnalyzeStateMachine(stateMachine.stateMachines[i].stateMachine, animator, meshRender, layer, bakeFPS, animationIndex);
             }
         }
 
 
+        /// <summary>
+        /// ！保存最后的动画导出数据
+        /// </summary>
+        /// <param name="name"></param>
         private void SaveAnimationInfo(string name)
         {
             string folderName = "AnimationTexture";
@@ -846,6 +878,12 @@ namespace AnimationInstancing
             UnityEngine.Profiling.Profiler.EndSample();
         }
 
+        /// <summary>
+        /// ！通过Mesh 给到的数据，进行生成
+        /// </summary>
+        /// <param name="meshRender"></param>
+        /// <param name="boneTransform"></param>
+        /// <param name="bindPose"></param>
         private void AddMeshVertex2Generate(SkinnedMeshRenderer[] meshRender,
             Transform[] boneTransform,
             Matrix4x4[] bindPose)
@@ -872,7 +910,12 @@ namespace AnimationInstancing
                 break;
             }
         }
+        
 
+        /// <summary>
+        /// ！预备好 Texture ，准备存数据
+        /// </summary>
+        /// <param name="infoList"></param>
         private void PrepareBoneTexture(ArrayList infoList)
         {
             int count = 1;
@@ -998,6 +1041,10 @@ namespace AnimationInstancing
             return textureWidth;
         }
 
+        /// <summary>
+        /// ！ 将数据写入 Texture
+        /// </summary>
+        /// <param name="infoList"></param>
         public void SetupAnimationTexture(ArrayList infoList)
         {
             int preNameCode = generateObjectData[0].stateName;
@@ -1020,19 +1067,29 @@ namespace AnimationInstancing
                         }
                     }
 
+                    //！取下纹理的宽高
                     int width = bakedBoneTexture[bakedTextureIndex].width;
                     int height = bakedBoneTexture[bakedTextureIndex].height;
+
                     int y = pixely;
+                    
+                    //！ 代表当前计算的所在列数，或者说 剩余列数
                     int currentLineBlockCount = (width - pixelx) / textureBlockWidth % (width / textureBlockWidth);
+                    //! 计算剩余帧号
                     totalFrames -= currentLineBlockCount;
                     if (totalFrames > 0)
                     {
+                        //! 总共表示多少帧数
                         int framesEachLine = width / textureBlockWidth;
+                        //！逐帧计算帧号，递进的 y 坐标因此变化
                         y += (totalFrames / framesEachLine) * textureBlockHeight;
+                        //! 特殊的头部 情况，（n+1）*item ， 这里就是表示 +1 
                         y += currentLineBlockCount > 0 ? textureBlockHeight : 0;
                         if (height < y + textureBlockHeight)
                         {
+                            //！填满了，递增索引
                             ++bakedTextureIndex;
+                            //! 重置计算
                             pixelx = 0;
                             pixely = 0;
                             Debug.Assert(bakedTextureIndex < bakedBoneTexture.Length);
@@ -1044,7 +1101,9 @@ namespace AnimationInstancing
                         AnimationInfo info = obj as AnimationInfo;
                         if (info.animationNameHash == matrixData.stateName)
                         {
+                            //! 设定动画索引值
                             info.animationIndex = pixelx / textureBlockWidth + pixely / textureBlockHeight * bakedBoneTexture[bakedTextureIndex].width / textureBlockWidth;
+                            //！texture 索引值
                             info.textureIndex = bakedTextureIndex;
                         }
                     }
@@ -1052,21 +1111,31 @@ namespace AnimationInstancing
                 if (matrixData.boneMatrix != null)
                 {
                     Debug.Assert(pixely + textureBlockHeight <= bakedBoneTexture[bakedTextureIndex].height);
-
+                    
+                    //>  关键的数据，写入Texture 的数据格式  HardCore -----------------------------------------------------------
                     //! Set Matrix to Color in Texture2D
+                    //! 矩阵转换成颜色
                     Color[] color = UtilityHelper.Convert2Color(matrixData.boneMatrix);
+                    //! 指定一个像素区域 设置为指定颜色
                     bakedBoneTexture[bakedTextureIndex].SetPixels(pixelx, pixely, textureBlockWidth, textureBlockHeight, color);
+                    //! 帧号
                     matrixData.frameIndex = pixelx / textureBlockWidth + pixely / textureBlockHeight * bakedBoneTexture[bakedTextureIndex].width / textureBlockWidth;
+                    //！推进列编号
                     pixelx += textureBlockWidth;
+
                     if (pixelx + textureBlockWidth > bakedBoneTexture[bakedTextureIndex].width)
                     {
+                        //！ 填满了一行，进行换行
                         pixelx = 0;
                         pixely += textureBlockHeight;
                     }
                     if (pixely + textureBlockHeight > bakedBoneTexture[bakedTextureIndex].height)
                     {
+                        //！ 填满了列
                         Debug.Assert(generateObjectData[i + 1].stateName != matrixData.stateName);
+                        //!  递增索引
                         ++bakedTextureIndex;
+                        //！ 清零重新计算
                         pixelx = 0;
                         pixely = 0;
                         Debug.Assert(bakedTextureIndex < bakedBoneTexture.Length);
