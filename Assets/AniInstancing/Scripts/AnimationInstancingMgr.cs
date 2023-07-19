@@ -18,6 +18,9 @@ namespace AnimationInstancing
     public class AnimationInstancingMgr : Singleton<AnimationInstancingMgr>
     {
         // array[index base on texture][package index][instance index]
+        /// <summary>
+        /// ！传递给 Shader 的数据
+        /// </summary>
         public class InstanceData
         {
             public List<Matrix4x4[]>[] worldMatrix;
@@ -50,6 +53,9 @@ namespace AnimationInstancing
             public List<InstancingPackage>[] packageList;
         }
 
+        /// <summary>
+        /// ???
+        /// </summary>
         public class VertexCache
         {
             public int nameCode;
@@ -645,6 +651,11 @@ namespace AnimationInstancing
             return package;
         }
 
+        /// <summary>
+        ///！ 通过材质名称获取HashCode
+        /// </summary>
+        /// <param name="mat"></param>
+        /// <returns></returns>
         int GetIdentify(Material[] mat)
         {
             int hash = 0;
@@ -655,6 +666,11 @@ namespace AnimationInstancing
             return hash;
         }
 
+        /// <summary>
+        /// ! 创建一个 InstanceData
+        /// </summary>
+        /// <param name="packageCount"></param>
+        /// <returns></returns>
         InstanceData CreateInstanceData(int packageCount)
         {
             InstanceData data = new InstanceData();
@@ -674,6 +690,15 @@ namespace AnimationInstancing
 
 
         // alias is to use for attachment, it should be a bone name
+        /// <summary>
+        /// ???
+        /// </summary>
+        /// <param name="prefabName"></param>
+        /// <param name="lodInfo"></param>
+        /// <param name="bones"></param>
+        /// <param name="bindPose"></param>
+        /// <param name="bonePerVertex"></param>
+        /// <param name="alias"></param>
         public void AddMeshVertex(string prefabName,
             AnimationInstancing.LodInfo[] lodInfo,
             Transform[] bones,
@@ -690,10 +715,12 @@ namespace AnimationInstancing
                     Mesh m = lod.skinnedMeshRenderer[i].sharedMesh;
                     if (m == null)
                         continue;
-
+                    //! 通过Name 获取 Code
                     int nameCode = lod.skinnedMeshRenderer[i].name.GetHashCode();
+                    //! 通过材质名称 获取 hash
                     int identify = GetIdentify(lod.skinnedMeshRenderer[i].sharedMaterials);
                     VertexCache cache = null;
+                    //! 判断池中是否有
                     if (vertexCachePool.TryGetValue(nameCode, out cache))
                     {
                         MaterialBlock block = null;
@@ -707,8 +734,10 @@ namespace AnimationInstancing
                         continue;
                     }
 
+                    //! 创建一个 VertexCache
                     VertexCache vertexCache = CreateVertexCache(prefabName, nameCode, 0, m);
                     vertexCache.bindPose = bindPose.ToArray();
+                    //? 材质块
                     MaterialBlock matBlock = CreateBlock(vertexCache, lod.skinnedMeshRenderer[i].sharedMaterials);
                     vertexCache.instanceBlockList.Add(identify, matBlock);
                     SetupVertexCache(vertexCache, matBlock, lod.skinnedMeshRenderer[i], bones, bonePerVertex);
@@ -786,6 +815,14 @@ namespace AnimationInstancing
             return block;
         }
 
+        /// <summary>
+        /// ！ 创建 VertexCache
+        /// </summary>
+        /// <param name="prefabName"></param>
+        /// <param name="renderName"></param>
+        /// <param name="alias"></param>
+        /// <param name="mesh"></param>
+        /// <returns></returns>
         private VertexCache CreateVertexCache(string prefabName, int renderName, int alias, Mesh mesh)
         {
             VertexCache vertexCache = new VertexCache();
@@ -793,18 +830,26 @@ namespace AnimationInstancing
             vertexCachePool[cacheName] = vertexCache;
             vertexCache.nameCode = cacheName;
             vertexCache.mesh = mesh;
+            //! 骨骼相关的 Texture
             vertexCache.boneTextureIndex = FindTexture_internal(prefabName);
             vertexCache.weight = new Vector4[mesh.vertexCount];
             vertexCache.boneIndex = new Vector4[mesh.vertexCount];
+            //FIXME:
+
+            //???
             int packageCount = GetPackageCount(vertexCache);
+
             InstanceData data = null;
-            //!
+            //! 标记一个实例对象+
             int instanceName = prefabName.GetHashCode() + alias;
             if (!instanceDataPool.TryGetValue(instanceName, out data))
             {
+                //! 不包含就创建一个
                 data = CreateInstanceData(packageCount);
+                //! 放入对象池中管理
                 instanceDataPool.Add(instanceName, data);
             }
+            //???
             vertexCache.instanceBlockList = new Dictionary<int, MaterialBlock>();
             return vertexCache;
         }

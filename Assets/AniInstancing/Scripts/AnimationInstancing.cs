@@ -70,6 +70,9 @@ namespace AnimationInstancing
         /// </summary>
         public bool applyRootMotion = false;
         [Range(1, 4)]
+        /// <summary>
+        /// ！Mesh 采样的骨骼点数
+        /// </summary>
         public int bonePerVertex = 4;
         [NonSerialized]
         public float curFrame;
@@ -332,6 +335,7 @@ namespace AnimationInstancing
             aniInfo = infoList;
             //extraBoneInfo = extraBoneInfo;
             List<Matrix4x4> bindPose = new List<Matrix4x4>(150);
+            //> 得到 BindPose
             //todo: to optimize, MergeBone don't need to call every time
             Transform[] bones = RuntimeHelper.MergeBone(lodInfo[0].skinnedMeshRenderer, bindPose);
             allTransforms = bones;

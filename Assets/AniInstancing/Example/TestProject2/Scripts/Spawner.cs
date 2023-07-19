@@ -79,6 +79,8 @@ public class Spawner: MonoBehaviour {
                 }
                 else
                 {
+                    //>
+                    //》
                     GameObject obj = null;
                     if (prefabA != null && !alt)
                         obj = Instantiate(prefabB, new Vector3(0, 0, 0), Quaternion.Euler(0, 0, 0));
