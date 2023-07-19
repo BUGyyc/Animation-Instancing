@@ -19,7 +19,7 @@ namespace AnimationInstancing
     {
         // array[index base on texture][package index][instance index]
         /// <summary>
-        /// ！传递给 Shader 的数据
+        /// ？传递给 Shader 的数据
         /// </summary>
         public class InstanceData
         {
@@ -61,7 +61,17 @@ namespace AnimationInstancing
             public int nameCode;
             public Mesh mesh = null;
             public Dictionary<int, MaterialBlock> instanceBlockList;
+
+
+
+            //?? 引擎中，似乎也最多受四个骨骼影响，所以 Vector4 也够用了
+            /// <summary>
+            /// ！顶点受影响的权重  
+            /// </summary>
             public Vector4[] weight;
+            /// <summary>
+            /// ！顶点受影响的 骨骼索引
+            /// </summary>
             public Vector4[] boneIndex;
             public Material[] materials = null;
             public Matrix4x4[] bindPose;
@@ -669,7 +679,7 @@ namespace AnimationInstancing
         /// <summary>
         /// ! 创建一个 InstanceData
         /// </summary>
-        /// <param name="packageCount"></param>
+        /// <param name="packageCount">AnimationTexture 数量</param>
         /// <returns></returns>
         InstanceData CreateInstanceData(int packageCount)
         {
@@ -740,6 +750,7 @@ namespace AnimationInstancing
                     //? 材质块
                     MaterialBlock matBlock = CreateBlock(vertexCache, lod.skinnedMeshRenderer[i].sharedMaterials);
                     vertexCache.instanceBlockList.Add(identify, matBlock);
+                    //? 组装顶点缓存数据
                     SetupVertexCache(vertexCache, matBlock, lod.skinnedMeshRenderer[i], bones, bonePerVertex);
                     lod.vertexCacheList[i] = vertexCache;
                     lod.materialBlockList[i] = matBlock;
@@ -782,6 +793,11 @@ namespace AnimationInstancing
             UnityEngine.Profiling.Profiler.EndSample();
         }
 
+        /// <summary>
+        /// ! 获取 AnimationTexture 的数量
+        /// </summary>
+        /// <param name="vertexCache"></param>
+        /// <returns></returns>
         int GetPackageCount(VertexCache vertexCache)
         {
             int packageCount = 1;
@@ -793,6 +809,12 @@ namespace AnimationInstancing
             return packageCount;
         }
 
+        /// <summary>
+        /// ??
+        /// </summary>
+        /// <param name="cache"></param>
+        /// <param name="materials"></param>
+        /// <returns></returns>
         MaterialBlock CreateBlock(VertexCache cache, Material[] materials)
         {
             MaterialBlock block = new MaterialBlock();
@@ -832,11 +854,12 @@ namespace AnimationInstancing
             vertexCache.mesh = mesh;
             //! 骨骼相关的 Texture
             vertexCache.boneTextureIndex = FindTexture_internal(prefabName);
+            //! 初始了顶点受影响的权重数组
             vertexCache.weight = new Vector4[mesh.vertexCount];
+            //！初始了顶点受影响的骨骼索引
             vertexCache.boneIndex = new Vector4[mesh.vertexCount];
-            //FIXME:
 
-            //???
+            //？？ AnimationTexture 的数量
             int packageCount = GetPackageCount(vertexCache);
 
             InstanceData data = null;
@@ -853,6 +876,15 @@ namespace AnimationInstancing
             vertexCache.instanceBlockList = new Dictionary<int, MaterialBlock>();
             return vertexCache;
         }
+
+        /// <summary>
+        /// ! 组装顶点缓存数据
+        /// </summary>
+        /// <param name="vertexCache"></param>
+        /// <param name="block"></param>
+        /// <param name="render"></param>
+        /// <param name="boneTransform"></param>
+        /// <param name="bonePerVertex"></param>
         private void SetupVertexCache(VertexCache vertexCache,
             MaterialBlock block,
             SkinnedMeshRenderer render,
@@ -862,14 +894,17 @@ namespace AnimationInstancing
             int[] boneIndex = null;
             if (render.bones.Length != boneTransform.Length)
             {
+                //！长度不等
                 if (render.bones.Length == 0)
                 {
+                    //！长度为0 ， 设定唯一的骨骼
                     boneIndex = new int[1];
                     int hashRenderParentName = render.transform.parent.name.GetHashCode();
                     for (int k = 0; k != boneTransform.Length; ++k)
                     {
                         if (hashRenderParentName == boneTransform[k].name.GetHashCode())
                         {
+                            //！ 唯一骨骼
                             boneIndex[0] = k;
                             break;
                         }
@@ -887,6 +922,7 @@ namespace AnimationInstancing
                         {
                             if (hashTransformName == boneTransform[k].name.GetHashCode())
                             {
+                                //！记录到骨骼对应的索引
                                 boneIndex[j] = k;
                                 break;
                             }
@@ -904,13 +940,19 @@ namespace AnimationInstancing
             Mesh m = render.sharedMesh;
             BoneWeight[] boneWeights = m.boneWeights;
             Debug.Assert(boneWeights.Length > 0);
+            //>>>  HardCore
             for (int j = 0; j != m.vertexCount; ++j)
             {
+                //! 遍历所有顶点，记录信息
+
+                //！记录顶点的权重信息，默认四个骨骼影响，后面会有设定骨骼数量的覆盖
                 vertexCache.weight[j].x = boneWeights[j].weight0;
                 Debug.Assert(vertexCache.weight[j].x > 0.0f);
                 vertexCache.weight[j].y = boneWeights[j].weight1;
                 vertexCache.weight[j].z = boneWeights[j].weight2;
                 vertexCache.weight[j].w = boneWeights[j].weight3;
+
+                //！设定受影响的骨骼索引
                 vertexCache.boneIndex[j].x
                     = boneIndex == null ? boneWeights[j].boneIndex0 : boneIndex[boneWeights[j].boneIndex0];
                 vertexCache.boneIndex[j].y
@@ -918,10 +960,13 @@ namespace AnimationInstancing
                 vertexCache.boneIndex[j].z
                     = boneIndex == null ? boneWeights[j].boneIndex2 : boneIndex[boneWeights[j].boneIndex2];
                 vertexCache.boneIndex[j].w
-                    = boneIndex == null ? boneWeights[j].boneIndex3 : boneIndex[boneWeights[j].boneIndex3];
+                    = boneIndex == null ? boneWeights[j].boneIndex3 : boneIndex[boneWeights[j].boneIndex3];    
                 Debug.Assert(vertexCache.boneIndex[j].x >= 0);
+
+
                 if (bonePerVertex == 3)
                 {
+                    //》如果只受三根骨骼影响
                     float rate = 1.0f / (vertexCache.weight[j].x + vertexCache.weight[j].y + vertexCache.weight[j].z);
                     vertexCache.weight[j].x = vertexCache.weight[j].x * rate;
                     vertexCache.weight[j].y = vertexCache.weight[j].y * rate;
@@ -930,6 +975,7 @@ namespace AnimationInstancing
                 }
                 else if (bonePerVertex == 2)
                 {
+                    //》只受两根骨骼影响
                     float rate = 1.0f / (vertexCache.weight[j].x + vertexCache.weight[j].y);
                     vertexCache.weight[j].x = vertexCache.weight[j].x * rate;
                     vertexCache.weight[j].y = vertexCache.weight[j].y * rate;
@@ -938,6 +984,7 @@ namespace AnimationInstancing
                 }
                 else if (bonePerVertex == 1)
                 {
+                    //> 只受一根骨骼影响
                     vertexCache.weight[j].x = 1.0f;
                     vertexCache.weight[j].y = -0.1f;
                     vertexCache.weight[j].z = -0.1f;
@@ -946,8 +993,10 @@ namespace AnimationInstancing
             }
             UnityEngine.Profiling.Profiler.EndSample();
 
+            //！ 记录一下材质信息
             if (vertexCache.materials == null)
                 vertexCache.materials = render.sharedMaterials;
+            // ！把权重数据写入到UV2里面
             SetupAdditionalData(vertexCache);
             for (int i = 0; i != block.packageList.Length; ++i)
             {
@@ -995,6 +1044,10 @@ namespace AnimationInstancing
         }
 
 
+        /// <summary>
+        /// ！把权重数据写入到UV2里面
+        /// </summary>
+        /// <param name="vertexCache"></param>
         public void SetupAdditionalData(VertexCache vertexCache)
         {
             Color[] colors = new Color[vertexCache.weight.Length];            
@@ -1012,6 +1065,7 @@ namespace AnimationInstancing
             {
                 uv2.Add(vertexCache.boneIndex[i]);
             }
+            //！写入到 UV2 上
             vertexCache.mesh.SetUVs(2, uv2);
             vertexCache.mesh.UploadMeshData(false);
         }

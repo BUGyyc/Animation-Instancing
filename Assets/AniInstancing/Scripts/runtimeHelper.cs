@@ -24,6 +24,7 @@ namespace AnimationInstancing
                     int index = listTransform.FindIndex(q => q == bones[j]);
                     if (index < 0)
                     {
+                        //> 未找到就记录下来
                         listTransform.Add(bones[j]);
                         if (bindPose != null)
                         {
@@ -41,6 +42,11 @@ namespace AnimationInstancing
             return listTransform.ToArray();
         }
 
+        /// <summary>
+        /// ！矩阵转四元数
+        /// </summary>
+        /// <param name="mat"></param>
+        /// <returns></returns>
         public static Quaternion QuaternionFromMatrix(Matrix4x4 mat)
         {
             Vector3 forward;
