@@ -62,7 +62,13 @@ namespace AnimationInstancing
         /// ！ 约定一个最大采样数？
         /// </summary>
         const int BakeFrameCount = 10000;
-        int textureBlockWidth = 4;
+        /// <summary>
+        /// ！ 表示四行矩阵，一行需要一个 Color , 四行需要四个Color，所以四个 Color 表示一个矩阵
+        /// </summary>
+        const int textureBlockWidth = 4;
+        /// <summary>
+        /// ！ 用动画骨骼数做计量单位，10 表示 10 根骨骼
+        /// </summary>
         int textureBlockHeight = 10;
         //！设定参考尺寸
         int[] stardardTextureSize = { 64, 128, 256, 512, 1024 };
@@ -901,7 +907,9 @@ namespace AnimationInstancing
             Matrix4x4[] bindPose)
         {
             boneCount = boneTransform.Length;
-            textureBlockWidth = 4;
+            //textureBlockWidth = 4;
+            //？？  骨骼数量
+            Debug.LogError(" count =============== "+boneCount);
             textureBlockHeight = boneCount;
             for (int i = 0; i != meshRender.Length; ++i)
             {
@@ -974,23 +982,28 @@ namespace AnimationInstancing
             else
             {
                 blockWidth = textureBlockWidth;
+                //--
                 blockHeight = textureBlockHeight;
             }
 
             int count = 1;
             for (int i = stardardTextureSize.Length - 1; i >= 0; --i)
             {
+                //！预设尺寸
                 int size = stardardTextureSize[i];
                 //! 按预置尺寸计算得到的列数
                 int blockCountEachLine = size / blockWidth;
                 int x = 0, y = 0;
                 int k = 0;
+                //! 逐帧计算
                 for (int j = 0; j != frames.Length; ++j)
                 {
                     int frame = frames[j];
+                    //！准确计算的一列所在像素尺寸
                     int currentLineEmptyBlockCount = (size - x) / blockWidth % blockCountEachLine;
                     bool check = x == 0 && y == 0;
                     x = (x + frame % blockCountEachLine * blockWidth) % size;
+                    //????
                     if (frame > currentLineEmptyBlockCount)
                     {
                         y += (frame - currentLineEmptyBlockCount) / blockCountEachLine * blockHeight;
@@ -1007,6 +1020,7 @@ namespace AnimationInstancing
                         {
                             if (i == stardardTextureSize.Length - 1)
                             {
+                                //！预设的数组已经装不下了
                                 Debug.LogError("There is certain animation's frame larger than a texture.");
                                 textureCount = 0;
                                 return -1;
@@ -1020,6 +1034,7 @@ namespace AnimationInstancing
                 bool suitable = false;
                 if (count > 1 && i == stardardTextureSize.Length - 1)
                 {
+                    //！第一张 RT 填满了，进行下一个填充
                     for (int m = 0; m != stardardTextureSize.Length; ++m)
                     {
                         size = stardardTextureSize[m];
@@ -1136,10 +1151,14 @@ namespace AnimationInstancing
                     
                     //>  关键的数据，写入Texture 的数据格式  HardCore -----------------------------------------------------------
                     //! Set Matrix to Color in Texture2D
-                    //! 矩阵转换成颜色
-                    Color[] color = UtilityHelper.Convert2Color(matrixData.boneMatrix);
+                    //! 矩阵转换成颜色，整个色块的颜色都在这里获得
+                    Color[] colorArray = UtilityHelper.Convert2Color(matrixData.boneMatrix);
+
+                    //？？？ 为啥要指定一块区域
+                    Debug.LogError("Set Block  x "+textureBlockWidth+ " y "+textureBlockHeight + " colorArray.Length "+colorArray.Length);
+
                     //! 指定一个像素区域 设置为指定颜色
-                    bakedBoneTexture[bakedTextureIndex].SetPixels(pixelx, pixely, textureBlockWidth, textureBlockHeight, color);
+                    bakedBoneTexture[bakedTextureIndex].SetPixels(pixelx, pixely, textureBlockWidth, textureBlockHeight, colorArray);
                     //! 帧号
                     matrixData.frameIndex = pixelx / textureBlockWidth + pixely / textureBlockHeight * bakedBoneTexture[bakedTextureIndex].width / textureBlockWidth;
                     //！推进列编号

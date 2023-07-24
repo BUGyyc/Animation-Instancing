@@ -7,6 +7,12 @@ namespace AnimationInstancing
     public class RuntimeHelper
     {
         // Merge all bones to a single array and merge all bind pose
+        /// <summary>
+        /// ??? 得到BoneTransform
+        /// </summary>
+        /// <param name="meshRender"></param>
+        /// <param name="bindPose"></param>
+        /// <returns></returns>
         public static Transform[] MergeBone(SkinnedMeshRenderer[] meshRender, List<Matrix4x4> bindPose)
         {
             UnityEngine.Profiling.Profiler.BeginSample("MergeBone()");

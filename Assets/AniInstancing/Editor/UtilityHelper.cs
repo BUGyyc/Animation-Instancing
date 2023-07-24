@@ -22,14 +22,17 @@ namespace AnimationInstancing
         {
             if (bonePose.Length == 0)
                 return null;
-
+            
+            //! 找到 Root 节点
             Transform root = bonePose[0];
             while (root.parent != null)
             {
                 root = root.parent;
             }
+            //！取下 Root 节点的变换矩阵
             Matrix4x4 rootMat = root.worldToLocalMatrix;
 
+            //！计算最终的矩阵
             Matrix4x4[] matrix = new Matrix4x4[bonePose.Length];
             for (int i = 0; i != bonePose.Length; ++i)
             {
@@ -64,6 +67,8 @@ namespace AnimationInstancing
         {
             Color[] color = new Color[boneMatrix.Length * 4];
             int index = 0;
+            
+            //! 用四个颜色存储四行数据
             foreach (var obj in boneMatrix)
             {
                 color[index++] = obj.GetRow(0);

@@ -29,11 +29,16 @@ UNITY_INSTANCING_BUFFER_END(Props)
 //! 通过帧号和骨骼索引号，得到矩阵
 half4x4 loadMatFromTexture(uint frameIndex, uint boneIndex)
 {
+	//！计算块的数量
 	uint blockCount = _boneTextureWidth / _boneTextureBlockWidth;
+
+	//! 计算采样的UV 
 	int2 uv;
+	
 	uv.y = frameIndex / blockCount * _boneTextureBlockHeight;
 	uv.x = _boneTextureBlockWidth * (frameIndex - _boneTextureWidth / _boneTextureBlockWidth * uv.y);
-
+	
+	//！最多受四个骨骼影响，所以除以4，然后再试骨骼索引
 	int matCount = _boneTextureBlockWidth / 4;
 	uv.x = uv.x + (boneIndex % matCount) * 4;
 	uv.y = uv.y + boneIndex / matCount;
@@ -44,15 +49,20 @@ half4x4 loadMatFromTexture(uint frameIndex, uint boneIndex)
 	half4 uvf = half4(uvFrame, 0, 0);
 
 	float offset = 1.0f / (float)_boneTextureWidth;
+	
 	half4 c1 = tex2Dlod(_boneTexture, uvf);
 	uvf.x = uvf.x + offset;
 	half4 c2 = tex2Dlod(_boneTexture, uvf);
 	uvf.x = uvf.x + offset;
 	half4 c3 = tex2Dlod(_boneTexture, uvf);
 	uvf.x = uvf.x + offset;
+
 	//half4 c4 = tex2Dlod(_boneTexture, uvf);
+
 	half4 c4 = half4(0, 0, 0, 1);
+
 	//float4x4 m = float4x4(c1, c2, c3, c4);
+
 	half4x4 m;
 	m._11_21_31_41 = c1;
 	m._12_22_32_42 = c2;
