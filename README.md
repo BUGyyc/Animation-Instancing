@@ -3,8 +3,15 @@
 
 1. blockWidth、blockHeight是用来干什么的，为啥要分块呢？
 
+```
+blockWidth：是矩阵中的四行，默认是4。
+blockHeight: 是SkinMeshRender中的骨骼数量。
+
+```
+
 2. 导出的骨骼的坐标，还是顶点的坐标？
 
+3. LOD 怎么在 Animation-Instance 中奏效？
 
 
 

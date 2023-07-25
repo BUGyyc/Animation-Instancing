@@ -678,6 +678,8 @@ namespace AnimationInstancing
         /// <param name="name"></param>
         private void SaveAnimationInfo(string name)
         {
+            //! ------------------------- HardCore ，写入数据
+
             string folderName = "AnimationTexture";
             string path = Application.dataPath + "/" + folderName + "/";
             if (!Directory.Exists(path))

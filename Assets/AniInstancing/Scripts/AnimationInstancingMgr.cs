@@ -622,6 +622,7 @@ namespace AnimationInstancing
             int blockWidth = reader.ReadInt32();
             int blockHeight = reader.ReadInt32();
 
+            //! 等同于，读取一个Animator 相关的动画数据
             AnimationTexture aniTexture = new AnimationTexture();
             aniTexture.boneTexture = new Texture2D[count];
             aniTexture.name = prefabName;
@@ -630,6 +631,7 @@ namespace AnimationInstancing
             //！ 将动画需要的 Texture 记录下来
             animationTextureList.Add(aniTexture);
 
+            //！一张张的 RT 读取
             for (int i = 0; i != count; ++i)
             {
                 int textureWidth = reader.ReadInt32();
@@ -639,6 +641,7 @@ namespace AnimationInstancing
                 b = reader.ReadBytes(byteLength);
                 //!  Create Texture By Raw Byte File
                 Texture2D texture = new Texture2D(textureWidth, textureHeight, format, false);
+                //！ 二进制数据写入 RT
                 texture.LoadRawTextureData(b);
                 texture.filterMode = FilterMode.Point;
                 texture.Apply();
