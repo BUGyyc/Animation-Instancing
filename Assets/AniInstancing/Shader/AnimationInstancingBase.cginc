@@ -30,7 +30,7 @@ UNITY_INSTANCING_BUFFER_START(Props)
 UNITY_INSTANCING_BUFFER_END(Props)
 #endif
 
-//! 通过帧号和骨骼索引号，得到矩阵
+//! 通过帧号和骨骼索引号，得到矩阵 。 frameIndex 表示帧号， boneIndex 表示骨骼编号
 half4x4 loadMatFromTexture(uint frameIndex, uint boneIndex)
 {
 	//！计算块的数量
@@ -48,21 +48,23 @@ half4x4 loadMatFromTexture(uint frameIndex, uint boneIndex)
 	uv.y = uv.y + boneIndex / matCount;
 
 	float2 uvFrame;
+	//！转换到0-1
 	uvFrame.x = uv.x / (float)_boneTextureWidth;
 	uvFrame.y = uv.y / (float)_boneTextureHeight;
 	half4 uvf = half4(uvFrame, 0, 0);
 
+	//! 一个像素的偏移
 	float offset = 1.0f / (float)_boneTextureWidth;
 	
+	//! 取下相邻的四个颜色，第四个颜色特别
 	half4 c1 = tex2Dlod(_boneTexture, uvf);
 	uvf.x = uvf.x + offset;
 	half4 c2 = tex2Dlod(_boneTexture, uvf);
 	uvf.x = uvf.x + offset;
 	half4 c3 = tex2Dlod(_boneTexture, uvf);
 	uvf.x = uvf.x + offset;
-
+	//! 第四个颜色，默认
 	//half4 c4 = tex2Dlod(_boneTexture, uvf);
-
 	half4 c4 = half4(0, 0, 0, 1);
 
 	//float4x4 m = float4x4(c1, c2, c3, c4);
@@ -77,7 +79,9 @@ half4x4 loadMatFromTexture(uint frameIndex, uint boneIndex)
 
 half4 skinning(inout appdata_full v)
 {
+	//！四个权重，对应的是四个骨骼的权重
 	fixed4 w = v.color;
+	//！四个通道存的是 骨骼索引编号
 	half4 bone = half4(v.texcoord2.x, v.texcoord2.y, v.texcoord2.z, v.texcoord2.w);
 #if (SHADER_TARGET < 30 || SHADER_API_GLES)
 	float curFrame = frameIndex;
@@ -93,30 +97,37 @@ half4 skinning(inout appdata_full v)
 	int preFrame = curFrame;
 	int nextFrame = curFrame + 1.0f;
 
-	
+	//！当前帧，四个骨骼叠加的矩阵
 	half4x4 localToWorldMatrixPre = loadMatFromTexture(preFrame, bone.x) * w.x;
 	localToWorldMatrixPre += loadMatFromTexture(preFrame, bone.y) * max(0, w.y);
 	localToWorldMatrixPre += loadMatFromTexture(preFrame, bone.z) * max(0, w.z);
 	localToWorldMatrixPre += loadMatFromTexture(preFrame, bone.w) * max(0, w.w);
 
+	//! 未来帧，四个骨骼叠加的矩阵
 	half4x4 localToWorldMatrixNext = loadMatFromTexture(nextFrame, bone.x) * w.x;
 	localToWorldMatrixNext += loadMatFromTexture(nextFrame, bone.y) * max(0, w.y);
 	localToWorldMatrixNext += loadMatFromTexture(nextFrame, bone.z) * max(0, w.z);
 	localToWorldMatrixNext += loadMatFromTexture(nextFrame, bone.w) * max(0, w.w);
-
+	
+	//! Mesh 顶点乘以矩阵，得到坐标
 	half4 localPosPre = mul(v.vertex, localToWorldMatrixPre);
 	half4 localPosNext = mul(v.vertex, localToWorldMatrixNext);
+	//! 取插值
 	half4 localPos = lerp(localPosPre, localPosNext, curFrame - preFrame);
 
+	//! 调整法线结果
 	half3 localNormPre = mul(v.normal.xyz, (float3x3)localToWorldMatrixPre);
 	half3 localNormNext = mul(v.normal.xyz, (float3x3)localToWorldMatrixNext);
 	v.normal = normalize(lerp(localNormPre, localNormNext, curFrame - preFrame));
+	//！切线结果
 	half3 localTanPre = mul(v.tangent.xyz, (float3x3)localToWorldMatrixPre);
 	half3 localTanNext = mul(v.tangent.xyz, (float3x3)localToWorldMatrixNext);
 	v.tangent.xyz = normalize(lerp(localTanPre, localTanNext, curFrame - preFrame));
 
+	//???
 	half4x4 localToWorldMatrixPreAni = loadMatFromTexture(preAniFrame, bone.x);
 	half4 localPosPreAni = mul(v.vertex, localToWorldMatrixPreAni);
+	//! 最后得到插值结果
 	localPos = lerp(localPos, localPosPreAni, (1.0f - progress) * (preAniFrame > 0.0f));
 	return localPos;
 }
