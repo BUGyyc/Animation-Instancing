@@ -20,6 +20,20 @@ blockHeight: 是SkinMeshRender中的骨骼数量。
 
 
 
+```
+//在CPU端，将LOD信息进行计算，得出需要渲染的Mesh信息
+
+
+//! 更新Lod
+instance.UpdateLod(cameraPosition);
+
+AnimationInstancing.LodInfo lod = instance.lodInfo[instance.lodLevel];
+
+
+```
+
+
+
 ---
 As developers, we’re always aware of performance, both in terms of CPU and GPU. Maintaining good performance gets more challenging as scenes get larger and more complex, especially as we add more and more characters. Me and my colleague in Shanghai come across this problem often when helping customers, so we decided to dedicate a few weeks to a project aimed to improve performance when instancing characters. We call the resulting technique Animation Instancing.
 > It needs at least Unity5.4.
