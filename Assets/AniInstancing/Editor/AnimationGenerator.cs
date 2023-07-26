@@ -984,7 +984,6 @@ namespace AnimationInstancing
             else
             {
                 blockWidth = textureBlockWidth;
-                //--
                 blockHeight = textureBlockHeight;
             }
 

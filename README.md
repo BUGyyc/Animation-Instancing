@@ -11,6 +11,10 @@ blockHeight: 是SkinMeshRender中的骨骼数量。
 
 2. 导出的骨骼的坐标，还是顶点的坐标？
 
+```
+骨骼坐标
+```
+
 3. LOD 怎么在 Animation-Instance 中奏效？
 
 

@@ -4,11 +4,15 @@
 #define ANIMATION_INSTANCING_BASE
 
 //#pragma target 3.0
-
+//! 被采样的纹理
 sampler2D _boneTexture;
+//! 通常是 4，表示矩阵的行数
 int _boneTextureBlockWidth;
+//! 表示骨骼数量
 int _boneTextureBlockHeight;
+//! 纹理的宽
 int _boneTextureWidth;
+//! 纹理的高
 int _boneTextureHeight;
 
 #if (SHADER_TARGET < 30 || SHADER_API_GLES)
@@ -88,6 +92,8 @@ half4 skinning(inout appdata_full v)
 	//float curFrame = UNITY_ACCESS_INSTANCED_PROP(frameIndex);
 	int preFrame = curFrame;
 	int nextFrame = curFrame + 1.0f;
+
+	
 	half4x4 localToWorldMatrixPre = loadMatFromTexture(preFrame, bone.x) * w.x;
 	localToWorldMatrixPre += loadMatFromTexture(preFrame, bone.y) * max(0, w.y);
 	localToWorldMatrixPre += loadMatFromTexture(preFrame, bone.z) * max(0, w.z);
