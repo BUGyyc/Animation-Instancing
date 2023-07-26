@@ -1,4 +1,7 @@
 
+![](99.res/pic/20230726111120.png)
+
+
 # QA
 
 1. blockWidth、blockHeight是用来干什么的，为啥要分块呢？
