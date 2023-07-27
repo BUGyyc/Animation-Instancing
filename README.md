@@ -36,6 +36,37 @@ AnimationInstancing.LodInfo lod = instance.lodInfo[instance.lodLevel];
 ```
 
 
+4. Shader 中的代码解读
+
+```C
+
+	//！四个通道存的是 骨骼索引编号
+	half4 bone = half4(v.texcoord2.x, v.texcoord2.y, v.texcoord2.z, v.texcoord2.w);
+
+```
+
+其中时源于 UV2 的数据已经预备好了
+
+```CSharp
+//！写入到 UV2 上
+vertexCache.mesh.SetUVs(2, uv2);
+```
+
+然后还有 mesh.Color
+
+```C
+//！四个权重，对应的是四个骨骼的权重
+fixed4 w = v.color;
+```
+
+在之前也有写入
+
+```
+//！把四个骨骼的权重也写入，用 mesh.Color 这个数据存储
+vertexCache.mesh.colors = colors;
+
+```
+
 
 ---
 As developers, we’re always aware of performance, both in terms of CPU and GPU. Maintaining good performance gets more challenging as scenes get larger and more complex, especially as we add more and more characters. Me and my colleague in Shanghai come across this problem often when helping customers, so we decided to dedicate a few weeks to a project aimed to improve performance when instancing characters. We call the resulting technique Animation Instancing.

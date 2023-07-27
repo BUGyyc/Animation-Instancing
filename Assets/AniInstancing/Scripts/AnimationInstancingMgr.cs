@@ -1129,6 +1129,7 @@ namespace AnimationInstancing
                 colors[i].b = vertexCache.weight[i].z;
                 colors[i].a = vertexCache.weight[i].w;
             }
+            //！把四个骨骼的权重也写入，用 mesh.Color 这个数据存储
             vertexCache.mesh.colors = colors;
 
             List<Vector4> uv2 = new List<Vector4>(vertexCache.boneIndex.Length);
